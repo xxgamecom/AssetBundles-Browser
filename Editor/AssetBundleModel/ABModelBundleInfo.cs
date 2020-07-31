@@ -272,6 +272,22 @@ namespace AssetBundleBrowser.AssetBundleModel
 
     internal class BundleDataInfo : BundleInfo
     {
+        public enum AssetType
+        {
+            GameObject,
+            SceneAsset,
+            TextAsset,
+            Texture2D,
+            Shader,
+            AudioClip,
+            Material,
+            AnimationClip,
+            AnimatorController,
+            ShaderVariants,
+            Font,
+            DefaultType = GameObject,
+        }
+
         protected List<AssetInfo> m_ConcreteAssets;
         protected List<AssetInfo> m_DependentAssets;
         protected List<BundleDependencyInfo> m_BundleDependencies;
@@ -279,6 +295,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         protected int m_DependentCounter;
         protected bool m_IsSceneBundle;
         protected long m_TotalSize;
+        protected AssetType m_AssetType = AssetType.DefaultType;
 
         internal BundleDataInfo(string name, BundleFolderInfo parent) : base(name, parent)
         {
@@ -325,7 +342,8 @@ namespace AssetBundleBrowser.AssetBundleModel
 
             m_ConcreteAssets.Clear();
             m_TotalSize = 0;
-            m_IsSceneBundle = false;
+            //m_IsSceneBundle = false;
+            m_AssetType = AssetType.DefaultType;
 
             foreach (var asset in m_DependentAssets)
             {
@@ -339,17 +357,31 @@ namespace AssetBundleBrowser.AssetBundleModel
             var assets = AssetBundleModel.Model.DataSource.GetAssetPathsFromAssetBundle(m_Name.fullNativeName);
             foreach(var assetName in assets)
             {
-                if (AssetDatabase.GetMainAssetTypeAtPath(assetName) == typeof(SceneAsset))
+                AssetType tempType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
+                switch (tempType)
                 {
-                    m_IsSceneBundle = true;
-                    if(assetInBundle)
-                        sceneError = true;
-                }
-                else
-                {
-                    assetInBundle = true;
-                    if (m_IsSceneBundle)
-                        sceneError = true;
+                    case AssetType.SceneAsset:
+                        {
+                            m_AssetType = tempType;
+                            //m_IsSceneBundle = true;
+                            if (assetInBundle)
+                                sceneError = true;
+                        }
+                        break;
+                    default:
+                        {
+                            assetInBundle = true;
+                            //if (m_IsSceneBundle)
+                            if (m_AssetType == AssetType.SceneAsset)
+                            {
+                                sceneError = true;
+                            }
+                            else
+                            {
+                                m_AssetType = tempType;
+                            }
+                        }
+                        break;
                 }
 
                 var bundleName = Model.GetBundleName(assetName);
@@ -386,6 +418,16 @@ namespace AssetBundleBrowser.AssetBundleModel
                                 if (last != null)
                                     m_TotalSize += last.fileSize;
                             }
+                            m_AssetType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
+                            switch (m_AssetType)
+                            {
+                                case AssetType.SceneAsset:
+                                    {
+                                        m_ConcreteAssets.Last().isScene = true;
+                                    }
+                                    break;
+                                default: { } break;
+                            }
                         }
                     }
                 }
@@ -396,10 +438,20 @@ namespace AssetBundleBrowser.AssetBundleModel
                     {
                         m_ConcreteAssets.Add(newAsset);
                         m_TotalSize += m_ConcreteAssets.Last().fileSize;
-                        if (AssetDatabase.GetMainAssetTypeAtPath(assetName) == typeof(SceneAsset))
+                        //if (AssetDatabase.GetMainAssetTypeAtPath(assetName) == typeof(SceneAsset))
+                        //{
+                        //    m_IsSceneBundle = true;
+                        //    m_ConcreteAssets.Last().isScene = true;
+                        //}
+                        m_AssetType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
+                        switch (m_AssetType)
                         {
-                            m_IsSceneBundle = true;
-                            m_ConcreteAssets.Last().isScene = true;
+                            case AssetType.SceneAsset:
+                                {
+                                    m_ConcreteAssets.Last().isScene = true;
+                                }
+                                break;
+                            default: { } break;
                         }
                     }
                 }
@@ -427,7 +479,54 @@ namespace AssetBundleBrowser.AssetBundleModel
             m_DependentCounter = 0;
             m_Dirty = true;
         }
-
+        private AssetType AnalysisAssetType(Type varType)
+        {
+            if (varType == typeof(GameObject))
+            {
+                return AssetType.GameObject;
+            }
+            if (varType == typeof(SceneAsset))
+            {
+                return AssetType.SceneAsset;
+            }
+            if (varType == typeof(Texture2D))
+            {
+                return AssetType.Texture2D;
+            }
+            if (varType == typeof(TextAsset))
+            {
+                return AssetType.TextAsset;
+            }
+            if (varType == typeof(Shader))
+            {
+                return AssetType.Shader;
+            }
+            if (varType == typeof(AudioClip))
+            {
+                return AssetType.AudioClip;
+            }
+            if (varType == typeof(Material))
+            {
+                return AssetType.Material;
+            }
+            if (varType == typeof(AnimationClip))
+            {
+                return AssetType.AnimationClip;
+            }
+            if (varType == typeof(UnityEditor.Animations.AnimatorController))
+            {
+                return AssetType.AnimatorController;
+            }
+            if (varType == typeof(ShaderVariantCollection))
+            {
+                return AssetType.ShaderVariants;
+            }
+            if (varType == typeof(Font))
+            {
+                return AssetType.Font;
+            }
+            return AssetType.DefaultType;
+        }
         internal override void AddAssetsToNode(AssetTreeItem node)
         {
             foreach (var asset in m_ConcreteAssets)
@@ -547,17 +646,17 @@ namespace AssetBundleBrowser.AssetBundleModel
             m_Dirty = true;
         }
 
-        internal bool isSceneBundle
-        { get { return m_IsSceneBundle; } }
+        internal bool isSceneBundle { get { return m_AssetType == AssetType.SceneAsset; } }
 
         internal override BundleTreeItem CreateTreeView(int depth)
         {
             RefreshAssetList();
             RefreshMessages();
-            if (isSceneBundle)
-                return new BundleTreeItem(this, depth, Model.GetSceneIcon());
-            else
-                return new BundleTreeItem(this, depth, Model.GetBundleIcon());
+            //if (isSceneBundle)
+            //    return new BundleTreeItem(this, depth, Model.GetSceneIcon());
+            //else
+            //    return new BundleTreeItem(this, depth, Model.GetBundleIcon());
+            return new BundleTreeItem(this, depth, Model.GetIconByAssetType(m_AssetType));
         }
 
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
@@ -668,7 +767,11 @@ namespace AssetBundleBrowser.AssetBundleModel
             }
             Model.MoveAssetToBundle(m_ConcreteAssets, forcedNewName, forcedNewVariant);
         }
-
+        internal AssetType GetVariantAssetType()
+        {
+            RefreshAssetList();
+            return m_AssetType;
+        }
         internal bool FindContentMismatch(BundleVariantDataInfo other)
         {
             bool result = false;
@@ -988,13 +1091,22 @@ namespace AssetBundleBrowser.AssetBundleModel
         {
             RefreshMessages();
             Texture2D icon = null;
-            if ((m_Children.Count > 0) &&
-                ((m_Children.First().Value as BundleVariantDataInfo).IsSceneVariant()))
+            //if ((m_Children.Count > 0) &&
+            //    ((m_Children.First().Value as BundleVariantDataInfo).IsSceneVariant()))
+            //{
+            //    icon = Model.GetSceneIcon();
+            //}
+            //else
+            //    icon = Model.GetBundleIcon();
+
+            if ((m_Children.Count > 0))
             {
-                icon = Model.GetSceneIcon();
+                icon = Model.GetIconByAssetType((m_Children.First().Value as BundleVariantDataInfo).GetVariantAssetType());
             }
             else
+            {
                 icon = Model.GetBundleIcon();
+            }
 
             var result = new BundleTreeItem(this, depth, icon);
             foreach (var child in m_Children)
@@ -1003,6 +1115,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             }
             return result;
         }
+
 
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
         {

@@ -41,10 +41,9 @@ namespace Assets.Editor.Tests.Util
             string path = "Assets/" + UnityEngine.Random.Range(0, 10000) + ".prefab";
             GameObject instance = GameObject.CreatePrimitive(PrimitiveType.Cube);
 
-            GameObject go = PrefabUtility.CreatePrefab(path, instance);
+            GameObject go = PrefabUtility.SaveAsPrefabAsset(instance, path);
             instance.name = name;
             AssetImporter.GetAtPath(path).SetAssetBundleNameAndVariant(bundleName, variantName);
-            PrefabUtility.MergeAllPrefabInstances(go);
             return path;
         }
 

@@ -115,11 +115,11 @@ namespace AssetBundleBrowserTests
 
             TestUtil.ExecuteCodeAndCleanupAssets(() =>
             {
-            //Act: Operates on the list of asset bundle names found in the AssetDatabase
-            string[] list = Model.ValidateBundleList();
+                //Act: Operates on the list of asset bundle names found in the AssetDatabase
+                string[] list = Model.ValidateBundleList();
 
-            //Assert
-            Assert.AreEqual(numBundles + 1, list.Length);
+                //Assert
+                Assert.AreEqual(numBundles + 1, list.Length);
                 Assert.IsTrue(list.Contains(bundleName));
             }, listOfPrefabs);
         }
@@ -139,11 +139,11 @@ namespace AssetBundleBrowserTests
 
             TestUtil.ExecuteCodeAndCleanupAssets(() =>
             {
-            //Act: Operates on the list of asset bundle names found in the AssetDatabase
-            string[] list = Model.ValidateBundleList();
+                //Act: Operates on the list of asset bundle names found in the AssetDatabase
+                string[] list = Model.ValidateBundleList();
 
-            //Assert
-            Assert.AreEqual(numBundles + 2, list.Length);
+                //Assert
+                Assert.AreEqual(numBundles + 2, list.Length);
                 Assert.IsTrue(list.Contains(bundleName + ".v1"));
                 Assert.IsTrue(list.Contains(bundleName + ".v2"));
             }, listOfPrefabs);
@@ -168,8 +168,8 @@ namespace AssetBundleBrowserTests
 
                 var rootChildList = ABModelUtil.Root.GetChildList();
 
-            //Checks that the root has 1 bundle variant folder object as a child
-            Assert.AreEqual(numChildren + 1, rootChildList.Count);
+                //Checks that the root has 1 bundle variant folder object as a child
+                Assert.AreEqual(numChildren + 1, rootChildList.Count);
 
                 Type variantFolderType = typeof(BundleVariantFolderInfo);
                 BundleVariantFolderInfo foundItem = null;
@@ -182,8 +182,8 @@ namespace AssetBundleBrowserTests
                     }
                 }
 
-            //Checks that the bundle variant folder object (mentioned above) has two children
-            Assert.IsNotNull(foundItem);
+                //Checks that the bundle variant folder object (mentioned above) has two children
+                Assert.IsNotNull(foundItem);
                 Assert.AreEqual(2, foundItem.GetChildList().Count);
 
             }, listOfPrefabs);
@@ -451,7 +451,7 @@ namespace AssetBundleBrowserTests
             concreteFolder.AddChild(subConcreteFolder);
             subConcreteFolder.AddChild(subConcreteFolder);
 
-            Model.HandleBundleReparent(new BundleInfo[] { folderToBeMoved }, concreteFolder);  
+            Model.HandleBundleReparent(new BundleInfo[] { folderToBeMoved }, concreteFolder);
 
             Assert.AreEqual(concreteFolder.m_Name.bundleName, folderToBeMoved.parent.m_Name.bundleName);
         }
@@ -649,8 +649,8 @@ namespace AssetBundleBrowserTests
                 Assert.AreEqual(numBundles + 1, bundleNames.Length);
                 Assert.IsTrue(bundleNames.Contains(bundle1Name));
 
-            //Make sure every asset now has bundle1 as the bundle name
-            foreach (string prefab in listOfPrefabs)
+                //Make sure every asset now has bundle1 as the bundle name
+                foreach (string prefab in listOfPrefabs)
                 {
                     Assert.AreEqual(bundle1Name, AssetImporter.GetAtPath(prefab).assetBundleName);
                 }
@@ -686,8 +686,8 @@ namespace AssetBundleBrowserTests
                 Assert.AreEqual(numBundles + 1, bundleNames.Length, GetAllElementsAsString(bundleNames));
                 Assert.IsTrue(bundleNames.Contains(bundle2Name));
 
-            //Make sure every asset now has bundle1 as the bundle name
-            foreach (string prefab in listOfPrefabs)
+                //Make sure every asset now has bundle1 as the bundle name
+                foreach (string prefab in listOfPrefabs)
                 {
                     Assert.AreEqual(bundle2Name, AssetImporter.GetAtPath(prefab).assetBundleName);
                 }
@@ -738,8 +738,8 @@ namespace AssetBundleBrowserTests
             {
                 AddMaterialsToMultipleObjects(new string[] { bundle1PrefabInstanceName, bundle2PrefabInstanceName }, listOfAssets, mat);
                 Model.HandleDedupeBundles(new BundleInfo[] { bundle1DataInfo, bundle2DataInfo }, false);
-            //This checks to make sure that a newbundle was automatically created since we dont' set this up anywhere else.
-            Assert.IsTrue(AssetDatabase.GetAllAssetBundleNames().Contains("newbundle"));
+                //This checks to make sure that a newbundle was automatically created since we dont' set this up anywhere else.
+                Assert.IsTrue(AssetDatabase.GetAllAssetBundleNames().Contains("newbundle"));
 
             }, listOfAssets);
         }
@@ -757,7 +757,8 @@ namespace AssetBundleBrowserTests
                 GameObject p = GameObject.Find(parentNames.ElementAt(i));
                 p.GetComponent<Renderer>().material = mat;
 
-                PrefabUtility.ReplacePrefab(p, AssetDatabase.LoadMainAssetAtPath(paths.ElementAt(i)));
+                //PrefabUtility.ReplacePrefab(p, AssetDatabase.LoadMainAssetAtPath(paths.ElementAt(i)));
+                PrefabUtility.SaveAsPrefabAsset(p, paths.ElementAt(i));
             }
         }
 
