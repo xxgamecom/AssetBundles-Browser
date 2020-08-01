@@ -12,17 +12,22 @@
 import os
 import shutil
 
-
-def updateUPM():
+def updateUPM(packageName: str, tag: str):
     os.system("git checkout -f master")
-    shutil.move("Assets/AssetBundles-Browser",".git/")
+    shutil.move("Assets/{0}".format(packageName), ".git/")
+    
     os.system("git checkout -f upm")
     os.system("git reset --hard")
     os.system("git clean -fd")
     os.system("git rm -rf --ignore-unmatch *")
-    shutil.move(".git/AssetBundles-Browser/","./")
-    pass
+
+    for d in os.listdir(".git/{0}/".format(packageName)):
+        shutil.move(".git/AssetBundles-Browser/" + d, "./")
+    os.system("git add -A")
+    os.system("git commit -m 'update upm to {0}'".format(tag))
+    os.system("git tag '{0}'".format(tag))
+    os.system("git push origin upm --tags")
 
 if __name__ == "__main__":
-    updateUPM()
+    updateUPM("AssetBundles-Browser","1.8.5")
     pass
