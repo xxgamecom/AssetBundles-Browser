@@ -23,11 +23,15 @@ def updateUPM(packageName: str, tag: str):
 
     for d in os.listdir(".git/{0}/".format(packageName)):
         shutil.move(".git/AssetBundles-Browser/" + d, "./")
+    shutil.rmtree(".git/AssetBundles-Browser/")
+
     os.system("git add -A")
     os.system("git commit -m 'update upm to {0}'".format(tag))
-    os.system("git tag '{0}'".format(tag))
+    os.system("git tag {0}".format(tag))
     os.system("git push origin upm --tags")
 
 if __name__ == "__main__":
-    updateUPM("AssetBundles-Browser","1.8.5")
+    tag = "1.8.5"
+    packageName = "AssetBundles-Browser"
+    # updateUPM(packageName,tag)
     pass
