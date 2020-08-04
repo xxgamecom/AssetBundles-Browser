@@ -20,10 +20,11 @@ def updateUPM(packageName: str, tag: str):
     os.system("git reset --hard")
     os.system("git clean -fd")
     os.system("git rm -rf --ignore-unmatch *")
-
-    for d in os.listdir(".git/{0}/".format(packageName)):
-        shutil.move(".git/AssetBundles-Browser/" + d, "./")
-    shutil.rmtree(".git/AssetBundles-Browser/")
+    
+    dir_name = ".git/{0}/".format(packageName)
+    for d in os.listdir(dir_name):
+        shutil.move(dir_name + d, "./")
+    shutil.rmtree(dir_name)
 
     os.system("git add -A")
     os.system("git commit -m 'update upm to {0}'".format(tag))
