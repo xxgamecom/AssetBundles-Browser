@@ -306,6 +306,16 @@ namespace AssetBundleBrowser
         {
             if (AssetBundleModel.Model.DataSource.CanSpecifyBuildOutputDirectory)
             {
+                if ((int)EditorUserBuildSettings.activeBuildTarget != (int)m_UserData.m_BuildTarget)
+                {
+                    if (!EditorUtility.DisplayDialog("Switch Platform confirm",
+                        string.Format("Current activeBuildTarget is {0},doesn't match {1} .",
+                        EditorUserBuildSettings.activeBuildTarget, m_UserData.m_BuildTarget), "Yes", "No"))
+                    {
+                        return;
+                    }
+                }
+
                 if (string.IsNullOrEmpty(m_UserData.m_OutputPath))
                     BrowseForFolder();
 
