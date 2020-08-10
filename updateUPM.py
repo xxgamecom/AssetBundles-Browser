@@ -31,8 +31,10 @@ def updateUPM(packageName: str, tag: str):
     os.system("git tag {0}".format(tag))
     os.system("git push origin upm --tags")
 
+    os.system("git checkout -f master")
+
 if __name__ == "__main__":
-    tag = "1.8.5"
+    tag = "1.8.6"
     packageName = "AssetBundles-Browser"
     # updateUPM(packageName,tag)
     pass
