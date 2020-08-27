@@ -30,7 +30,7 @@ def updateUPM(packageName: str, version_tag: str):
     shutil.rmtree(dir_name)
 
     os.system("git add -A")
-    os.system("git commit -m 'update upm to {0}'".format(version_tag))
+    os.system("git commit -m {0}".format("update upm to " + version_tag))
     os.system("git tag {0}".format(version_tag))
     os.system("git push origin upm --tags")
 
