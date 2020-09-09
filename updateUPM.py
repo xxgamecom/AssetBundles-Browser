@@ -49,7 +49,7 @@ def modify_packageJson(package_path: str, version_tag: str):
 
 
 if __name__ == "__main__":
-    tag = "1.8.8"
+    tag = "1.9.0"
     packageName = "AssetBundles-Browser"
     # updateUPM(packageName,tag)
     pass
