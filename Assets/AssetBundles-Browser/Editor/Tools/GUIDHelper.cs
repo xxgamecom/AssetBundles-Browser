@@ -118,6 +118,11 @@ namespace AssetBundleBrowser
                         var tempObjs = AssetDatabase.LoadAllAssetsAtPath(item);
                         foreach (var tempObj in tempObjs)
                         {
+                            if (tempObj == null)
+                            {
+                                Debug.LogWarning($"maybe {item} has missing assets ref.");
+                                continue;
+                            }
                             string guid; long file;
                             if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(tempObj, out guid, out file))
                             {
