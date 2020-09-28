@@ -131,9 +131,27 @@ namespace AssetBundleBrowser
                 menu.AddItem(new GUIContent("Add new bundle"), false, CreateNewBundle, selectedNodes); 
                 menu.AddItem(new GUIContent("Add new folder"), false, CreateFolder, selectedNodes);
             }
+            menu.AddSeparator(string.Empty);
 
+            menu.AddItem(new GUIContent("Export all data"), false, ExportABInfo, selectedNodes);
+            menu.AddItem(new GUIContent("Import data"), false, ImportABInfo, selectedNodes);
+
+            menu.AddSeparator(string.Empty);
             menu.AddItem(new GUIContent("Reload all data"), false, ForceReloadData, selectedNodes);
+
             menu.ShowAsContext();
+        }
+
+        private void ExportABInfo(object varContext)
+        {
+
+        }
+        private void ImportABInfo(object varContext)
+        {
+            string tempOpenPath = EditorUtility.OpenFilePanel("Select AssetBuddle Info", Application.dataPath, "json");
+            
+            ForceReloadData(null);
+            AssetDatabase.RemoveUnusedAssetBundleNames();
         }
 
         protected override void ContextClickedItem(int id)
