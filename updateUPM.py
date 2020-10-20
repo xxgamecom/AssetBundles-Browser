@@ -17,6 +17,8 @@ import json
 def updateUPM(packageName: str, version_tag: str):
     os.system("git checkout -f master")
     modify_packageJson("Assets/{0}/package.json".format(packageName), version_tag)
+    if os.path.exists(f".git/{packageName}"):
+        shutil.rmtree(f".git/{packageName}")
     shutil.move("Assets/{0}".format(packageName), ".git/")
 
     os.system("git checkout -f upm")
