@@ -16,7 +16,7 @@ namespace AssetBundleBrowser
         #endregion
 
         #region [Menu]
-        [MenuItem("Window/AssetBundle Browser/GUIDHelper #g")]
+        [MenuItem("Window/AssetBundle Browser/GUIDHelper #g", priority = 3050)]
         public static void GUIDHelperWindow()
         {
             EditorWindow.GetWindow<GUIDHelper>();
