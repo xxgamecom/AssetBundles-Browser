@@ -37,10 +37,18 @@ namespace AssetBundleBrowser
 
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     GUIItem(ref guidStr, "GUIDToAssetPath", "input GUID parse to AssetPath.", "GUID invalid.", AssetDatabase.GUIDToAssetPath);
+#if UNITY_2018
+                EditorGUILayout.Space();
+#else
                 EditorGUILayout.Space(10);
+#endif
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     GUIItem(ref astPathStr, "AssetPathToGUID", "input AssetPath parse to GUID.", "AssetPath invalid.", AssetDatabase.AssetPathToGUID);
+#if UNITY_2018
+                EditorGUILayout.Space();
+#else
                 EditorGUILayout.Space(10);
+#endif
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     GUIDAndLocalFileIdentifierGUI();
             }
