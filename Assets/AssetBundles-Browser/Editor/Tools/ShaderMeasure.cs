@@ -95,7 +95,12 @@ public sealed class ShaderMeasure : EditorWindow
 
         //credits
         {
+#if UNITY_2018
+            EditorGUILayout.Space();
+#else
             EditorGUILayout.Space(5);
+#endif
+
             GUIStyle _creditsStyle = new GUIStyle();
             _creditsStyle.fontStyle = FontStyle.Italic;
             _creditsStyle.alignment = TextAnchor.MiddleCenter;
