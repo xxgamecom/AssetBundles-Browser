@@ -72,10 +72,7 @@ namespace AssetBundleBrowser
         internal AssetBundleBuildTab()
         {
             m_AdvancedSettings = false;
-            m_UserData = new BuildTabData()
-            {
-                m_BuildTarget = (ValidBuildTarget)(int)EditorUserBuildSettings.activeBuildTarget
-            };
+            m_UserData = new BuildTabData();
             m_UserData.m_OnToggles = new List<string>();
             m_UserData.m_UseDefaultPath = true;
         }
@@ -96,6 +93,8 @@ namespace AssetBundleBrowser
         internal void OnEnable(EditorWindow parent)
         {
             m_InspectTab = (parent as AssetBundleBrowserMain).m_InspectTab;
+
+            m_UserData.m_BuildTarget = (ValidBuildTarget)(int)EditorUserBuildSettings.activeBuildTarget;
 
             //LoadData...
             var dataPath = System.IO.Path.GetFullPath(".");
