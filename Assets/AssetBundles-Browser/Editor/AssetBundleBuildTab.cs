@@ -475,8 +475,8 @@ namespace AssetBundleBrowser
         internal class BuildTabData
         {
             internal List<string> m_OnToggles;
-            internal ValidBuildTarget m_BuildTarget = ValidBuildTarget.StandaloneWindows;
-            internal CompressOptions m_Compression = CompressOptions.StandardCompression;
+            internal ValidBuildTarget m_BuildTarget = (ValidBuildTarget)(int)EditorUserBuildSettings.activeBuildTarget;
+            internal CompressOptions m_Compression = CompressOptions.ChunkBasedCompression;
             internal string m_OutputPath = string.Empty;
             internal bool m_UseDefaultPath = true;
         }
