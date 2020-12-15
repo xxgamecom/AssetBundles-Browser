@@ -72,7 +72,10 @@ namespace AssetBundleBrowser
         internal AssetBundleBuildTab()
         {
             m_AdvancedSettings = false;
-            m_UserData = new BuildTabData();
+            m_UserData = new BuildTabData()
+            {
+                m_BuildTarget = (ValidBuildTarget)(int)EditorUserBuildSettings.activeBuildTarget
+            };
             m_UserData.m_OnToggles = new List<string>();
             m_UserData.m_UseDefaultPath = true;
         }
@@ -475,7 +478,7 @@ namespace AssetBundleBrowser
         internal class BuildTabData
         {
             internal List<string> m_OnToggles;
-            internal ValidBuildTarget m_BuildTarget = (ValidBuildTarget)(int)EditorUserBuildSettings.activeBuildTarget;
+            internal ValidBuildTarget m_BuildTarget = ValidBuildTarget.StandaloneWindows;
             internal CompressOptions m_Compression = CompressOptions.ChunkBasedCompression;
             internal string m_OutputPath = string.Empty;
             internal bool m_UseDefaultPath = true;
