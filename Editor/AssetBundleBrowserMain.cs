@@ -57,13 +57,24 @@ namespace AssetBundleBrowser
             instance.Show();
         }
 
+        [MenuItem("Test/Ts")]
+        public static void TestBtn()
+        {
+            var tempABs = AssetDatabase.GetAllAssetBundleNames();
+            foreach (var item in tempABs)
+            {
+                Debug.LogError(string.Join("|", AssetDatabase.GetDependencies(AssetDatabase.GetAssetPathsFromAssetBundle(item), false)));
+            }
+            
+        }
+
         [SerializeField]
         internal bool multiDataSource = false;
         List<AssetBundleDataSource.ABDataSource> m_DataSourceList = null;
         public virtual void AddItemsToMenu(GenericMenu menu)
         {
-            if(menu != null)
-               menu.AddItem(new GUIContent("Custom Sources"), multiDataSource, FlipDataSource);
+            if (menu != null)
+                menu.AddItem(new GUIContent("Custom Sources"), multiDataSource, FlipDataSource);
         }
         internal void FlipDataSource()
         {
@@ -74,10 +85,10 @@ namespace AssetBundleBrowser
         {
 
             Rect subPos = GetSubWindowArea();
-            if(m_ManageTab == null)
+            if (m_ManageTab == null)
                 m_ManageTab = new AssetBundleManageTab();
             m_ManageTab.OnEnable(subPos, this);
-            if(m_BuildTab == null)
+            if (m_BuildTab == null)
                 m_BuildTab = new AssetBundleBuildTab();
             m_BuildTab.OnEnable(this);
             if (m_InspectTab == null)
@@ -87,7 +98,7 @@ namespace AssetBundleBrowser
             m_RefreshTexture = EditorGUIUtility.FindTexture("Refresh");
 
             InitDataSources();
-        } 
+        }
         private void InitDataSources()
         {
             //determine if we are "multi source" or not...
@@ -97,7 +108,7 @@ namespace AssetBundleBrowser
             {
                 m_DataSourceList.AddRange(info.GetMethod("CreateDataSources").Invoke(null, null) as List<AssetBundleDataSource.ABDataSource>);
             }
-             
+
             if (m_DataSourceList.Count > 1)
             {
                 multiDataSource = true;
@@ -149,10 +160,10 @@ namespace AssetBundleBrowser
         {
             ModeToggle();
 
-            switch(m_Mode)
+            switch (m_Mode)
             {
                 case Mode.Builder:
-                    m_BuildTab.OnGUI();
+                    m_BuildTab.OnGUI(GetSubWindowArea());
                     break;
                 case Mode.Inspect:
                     m_InspectTab.OnGUI(GetSubWindowArea());
@@ -169,7 +180,7 @@ namespace AssetBundleBrowser
             GUILayout.BeginHorizontal();
             GUILayout.Space(k_ToolbarPadding);
             bool clicked = false;
-            switch(m_Mode)
+            switch (m_Mode)
             {
                 case Mode.Browser:
                     clicked = GUILayout.Button(m_RefreshTexture);
@@ -189,10 +200,10 @@ namespace AssetBundleBrowser
             float toolbarWidth = position.width - k_ToolbarPadding * 4 - m_RefreshTexture.width;
             //string[] labels = new string[2] { "Configure", "Build"};
             string[] labels = new string[3] { "Configure", "Build", "Inspect" };
-            m_Mode = (Mode)GUILayout.Toolbar((int)m_Mode, labels, "LargeButton", GUILayout.Width(toolbarWidth) );
+            m_Mode = (Mode)GUILayout.Toolbar((int)m_Mode, labels, "LargeButton", GUILayout.Width(toolbarWidth));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-            if(multiDataSource)
+            if (multiDataSource)
             {
                 //GUILayout.BeginArea(r);
                 GUILayout.BeginHorizontal();
@@ -202,7 +213,7 @@ namespace AssetBundleBrowser
                     GUILayout.Label("Bundle Data Source:");
                     GUILayout.FlexibleSpace();
                     var c = new GUIContent(string.Format("{0} ({1})", AssetBundleModel.Model.DataSource.Name, AssetBundleModel.Model.DataSource.ProviderName), "Select Asset Bundle Set");
-                    if (GUILayout.Button(c , EditorStyles.toolbarPopup) )
+                    if (GUILayout.Button(c, EditorStyles.toolbarPopup))
                     {
                         GenericMenu menu = new GenericMenu();
 
@@ -214,7 +225,7 @@ namespace AssetBundleBrowser
 
                             if (index > 0)
                                 menu.AddSeparator("");
-                             
+
                             var counter = index;
                             menu.AddItem(new GUIContent(string.Format("{0} ({1})", ds.Name, ds.ProviderName)), false,
                                 () =>

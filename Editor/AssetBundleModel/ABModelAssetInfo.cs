@@ -1,8 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using System.IO;
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.IMGUI.Controls;
+
+using URandom = UnityEngine.Random;
 
 namespace AssetBundleBrowser.AssetBundleModel
 {
@@ -14,7 +18,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             get { return m_asset; }
         }
         internal AssetTreeItem() : base(-1, -1) { }
-        internal AssetTreeItem(AssetInfo a) : base(a != null ? a.fullAssetName.GetHashCode() : Random.Range(int.MinValue, int.MaxValue), 0, a != null ? a.displayName : "failed")
+        internal AssetTreeItem(AssetInfo a) : base(a != null ? a.fullAssetName.GetHashCode() : URandom.Range(int.MinValue, int.MaxValue), 0, a != null ? a.displayName : "failed")
         {
             m_asset = a;
             if (a != null)
@@ -74,13 +78,16 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal bool isFolder { get; set; }
         internal long fileSize;
 
+        internal long UfileSize;
+        internal Type assetType;
+
         private HashSet<string> m_Parents;
         private string m_AssetName;
         private string m_DisplayName;
         private string m_BundleName;
         private MessageSystem.MessageState m_AssetMessages = new MessageSystem.MessageState();
 
-        internal AssetInfo(string inName, string bundleName="")
+        internal AssetInfo(string inName, string bundleName = "")
         {
             fullAssetName = inName;
             m_BundleName = bundleName;
@@ -95,14 +102,20 @@ namespace AssetBundleBrowser.AssetBundleModel
             set
             {
                 m_AssetName = value;
-                m_DisplayName = System.IO.Path.GetFileNameWithoutExtension(m_AssetName);
+                m_DisplayName = Path.GetFileNameWithoutExtension(m_AssetName);
 
                 //TODO - maybe there's a way to ask the AssetDatabase for this size info.
                 System.IO.FileInfo fileInfo = new System.IO.FileInfo(m_AssetName);
                 if (fileInfo.Exists)
+                {
+                    assetType = AssetDatabase.GetMainAssetTypeAtPath(m_AssetName);
                     fileSize = fileInfo.Length;
+                    UfileSize = assetType != typeof(Texture2D) ? 0 : AssetDatabase.LoadAssetAtPath<Texture2D>(m_AssetName).GetRawTextureData().LongLength;
+                }
                 else
+                {
                     fileSize = 0;
+                }
             }
         }
         internal string displayName
@@ -111,7 +124,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         }
         internal string bundleName
         { get { return System.String.IsNullOrEmpty(m_BundleName) ? "auto" : m_BundleName; } }
-        
+
         internal Color GetColor()
         {
             if (System.String.IsNullOrEmpty(m_BundleName))
@@ -135,7 +148,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal IEnumerable<MessageSystem.Message> GetMessages()
         {
             List<MessageSystem.Message> messages = new List<MessageSystem.Message>();
-            if(IsMessageSet(MessageSystem.MessageFlag.SceneBundleConflict))
+            if (IsMessageSet(MessageSystem.MessageFlag.SceneBundleConflict))
             {
                 var message = displayName + "\n";
                 if (isScene)
@@ -144,7 +157,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                     message += "Is included in a bundle with a scene. Scene bundles must have only one or more scene assets.";
                 messages.Add(new MessageSystem.Message(message, MessageType.Error));
             }
-            if(IsMessageSet(MessageSystem.MessageFlag.DependencySceneConflict))
+            if (IsMessageSet(MessageSystem.MessageFlag.DependencySceneConflict))
             {
                 var message = displayName + "\n";
                 message += MessageSystem.GetMessage(MessageSystem.MessageFlag.DependencySceneConflict).message;
@@ -154,7 +167,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 var bundleNames = AssetBundleModel.Model.CheckDependencyTracker(this);
                 string message = displayName + "\n" + "Is auto-included in multiple bundles:\n";
-                foreach(var bundleName in bundleNames)
+                foreach (var bundleName in bundleNames)
                 {
                     message += bundleName + ", ";
                 }
@@ -172,7 +185,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                 }
                 message = message.Substring(0, message.Length - 2);//remove trailing comma.
                 messages.Add(new MessageSystem.Message(message, MessageType.Info));
-            }            
+            }
 
             if (m_dependencies != null && m_dependencies.Count > 0)
             {
@@ -191,7 +204,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                     message = message.Substring(0, message.Length - 1);//remove trailing line break.
                     messages.Add(new MessageSystem.Message(message, MessageType.Info));
                 }
-            }            
+            }
 
             messages.Add(new MessageSystem.Message(displayName + "\n" + "Path: " + fullAssetName, MessageType.Info));
 
@@ -211,6 +224,12 @@ namespace AssetBundleBrowser.AssetBundleModel
             if (fileSize == 0)
                 return "--";
             return EditorUtility.FormatBytes(fileSize);
+        }
+        internal string GetUSizeString()
+        {
+            if (UfileSize == 0 || UfileSize == fileSize)
+                return "--";
+            return EditorUtility.FormatBytes(UfileSize);
         }
 
         List<AssetInfo> m_dependencies = null;

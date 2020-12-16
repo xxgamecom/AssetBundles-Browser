@@ -18,68 +18,71 @@ namespace AssetBundleBrowser
         {
             return new MultiColumnHeaderState(GetColumns());
         }
+        private delegate void CreateColumn(ref List<MultiColumnHeaderState.Column> varSource, GUIContent varGUIC, float varMinWidth,
+            float varWidth, float varMaxWidth, TextAlignment varheaderTextAlignment, bool varCanSort, bool varAutoResize);
         private static MultiColumnHeaderState.Column[] GetColumns()
         {
-            var retVal = new MultiColumnHeaderState.Column[] {
-                new MultiColumnHeaderState.Column(),
-                new MultiColumnHeaderState.Column(),
-                new MultiColumnHeaderState.Column(),
-                new MultiColumnHeaderState.Column()
+            var tempColumn = new List<MultiColumnHeaderState.Column>();
+            CreateColumn tempCreateColumn = delegate (ref List<MultiColumnHeaderState.Column> varSource, GUIContent varGUIC, float varMinWidth,
+               float varWidth, float varMaxWidth, TextAlignment varheaderTextAlignment, bool varCanSort, bool varAutoResize)
+            {
+                var tempItem = new MultiColumnHeaderState.Column();
+                tempItem.headerContent = varGUIC;
+                tempItem.minWidth = varMinWidth;
+                tempItem.width = varWidth;
+                tempItem.maxWidth = varMaxWidth;
+                tempItem.headerTextAlignment = varheaderTextAlignment;
+                tempItem.canSort = varCanSort;
+                tempItem.autoResize = varAutoResize;
+                varSource.Add(tempItem);
             };
-            retVal[0].headerContent = new GUIContent("Asset", "Short name of asset. For full name select asset and see message below");
-            retVal[0].minWidth = 50;
-            retVal[0].width = 100;
-            retVal[0].maxWidth = 300;
-            retVal[0].headerTextAlignment = TextAlignment.Left;
-            retVal[0].canSort = true;
-            retVal[0].autoResize = true;
 
-            retVal[1].headerContent = new GUIContent("Bundle", "Bundle name. 'auto' means asset was pulled in due to dependency");
-            retVal[1].minWidth = 50;
-            retVal[1].width = 100;
-            retVal[1].maxWidth = 300;
-            retVal[1].headerTextAlignment = TextAlignment.Left;
-            retVal[1].canSort = true;
-            retVal[1].autoResize = true;
+            tempCreateColumn(ref tempColumn, new GUIContent("Asset", "Short name of asset. For full name select asset and see message below"),
+                50, 150, 300, TextAlignment.Left, true, true);
 
-            retVal[2].headerContent = new GUIContent("Size", "Size on disk");
-            retVal[2].minWidth = 30;
-            retVal[2].width = 75;
-            retVal[2].maxWidth = 100;
-            retVal[2].headerTextAlignment = TextAlignment.Left;
-            retVal[2].canSort = true;
-            retVal[2].autoResize = true;
+            tempCreateColumn(ref tempColumn, new GUIContent("Bundle", "Bundle name. 'auto' means asset was pulled in due to dependency"),
+                50, 100, 300, TextAlignment.Left, true, true);
 
-            retVal[3].headerContent = new GUIContent("!", "Errors, Warnings, or Info");
-            retVal[3].minWidth = 16;
-            retVal[3].width = 16;
-            retVal[3].maxWidth = 16;
-            retVal[3].headerTextAlignment = TextAlignment.Left;
-            retVal[3].canSort = true;
-            retVal[3].autoResize = false;
+            tempCreateColumn(ref tempColumn, new GUIContent("AssetType", "Type of Assets"),
+                50, 100, 300, TextAlignment.Left, true, true);
 
-            return retVal;
+            tempCreateColumn(ref tempColumn, new GUIContent("Size", "Size on disk"),
+                30, 75, 100, TextAlignment.Left, true, true);
+
+            tempCreateColumn(ref tempColumn, new GUIContent("USize", "Size on Unity Compress"),
+                30, 75, 100, TextAlignment.Left, true, true);
+
+            tempCreateColumn(ref tempColumn, new GUIContent("!", "Errors, Warnings, or Info"),
+                16, 16, 16, TextAlignment.Left, true, false);
+
+            return tempColumn.ToArray();
         }
         enum MyColumns
         {
             Asset,
             Bundle,
+            AssetType,
             Size,
-            Message
+            USize,
+            Message,
         }
         internal enum SortOption
         {
             Asset,
             Bundle,
+            AssetType,
             Size,
-            Message
+            USize,
+            Message,
         }
         SortOption[] m_SortOptions =
         {
             SortOption.Asset,
             SortOption.Bundle,
+            SortOption.AssetType,
             SortOption.Size,
-            SortOption.Message
+            SortOption.USize,
+            SortOption.Message,
         };
 
         internal AssetListTree(TreeViewState state, MultiColumnHeaderState mchs, AssetBundleManageTab ctrl) : base(state, new MultiColumnHeader(mchs))
@@ -146,7 +149,7 @@ namespace AssetBundleBrowser
 
             switch (column)
             {
-                case 0:
+                case (int)SortOption.Asset:
                     {
                         var iconRect = new Rect(cellRect.x + 1, cellRect.y + 1, cellRect.height - 2, cellRect.height - 2);
                         if (item.icon != null)
@@ -158,19 +161,29 @@ namespace AssetBundleBrowser
                             args.focused);
                     }
                     break;
-                case 1:
+                case (int)SortOption.Bundle:
                     DefaultGUI.Label(cellRect, item.asset.bundleName, args.selected, args.focused);
                     break;
-                case 2:
+                case (int)SortOption.AssetType:
+                    {
+                        string tempType = item.asset.assetType.ToString();
+                        tempType = tempType.Substring(tempType.LastIndexOf('.') + 1);
+                        DefaultGUI.Label(cellRect, tempType, args.selected, args.focused);
+                    }
+                    break;
+                case (int)SortOption.Size:
                     DefaultGUI.Label(cellRect, item.asset.GetSizeString(), args.selected, args.focused);
                     break;
-                case 3:
+                case (int)SortOption.Message:
                     var icon = item.MessageIcon();
                     if (icon != null)
                     {
                         var iconRect = new Rect(cellRect.x, cellRect.y, cellRect.height, cellRect.height);
                         GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
                     }
+                    break;
+                case (int)SortOption.USize:
+                    DefaultGUI.Label(cellRect, item.asset.GetUSizeString(), args.selected, args.focused);
                     break;
             }
             GUI.color = oldColor;
@@ -483,8 +496,12 @@ namespace AssetBundleBrowser
             {
                 case SortOption.Asset:
                     return myTypes.Order(l => l.displayName, ascending);
+                case SortOption.AssetType:
+                    return myTypes.Order(l => l.asset.assetType.ToString().Substring(l.asset.assetType.ToString().LastIndexOf('.') + 1), ascending);
                 case SortOption.Size:
                     return myTypes.Order(l => l.asset.fileSize, ascending);
+                case SortOption.USize:
+                    return myTypes.Order(l => l.asset.UfileSize, ascending);
                 case SortOption.Message:
                     return myTypes.Order(l => l.HighestMessageLevel(), ascending);
                 case SortOption.Bundle:
