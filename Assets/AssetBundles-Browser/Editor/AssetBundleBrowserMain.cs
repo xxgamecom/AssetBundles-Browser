@@ -57,6 +57,17 @@ namespace AssetBundleBrowser
             instance.Show();
         }
 
+        [MenuItem("Test/Ts")]
+        public static void TestBtn()
+        {
+            var tempABs = AssetDatabase.GetAllAssetBundleNames();
+            foreach (var item in tempABs)
+            {
+                Debug.LogError(string.Join("|", AssetDatabase.GetDependencies(AssetDatabase.GetAssetPathsFromAssetBundle(item), false)));
+            }
+            
+        }
+
         [SerializeField]
         internal bool multiDataSource = false;
         List<AssetBundleDataSource.ABDataSource> m_DataSourceList = null;
@@ -152,7 +163,7 @@ namespace AssetBundleBrowser
             switch (m_Mode)
             {
                 case Mode.Builder:
-                    m_BuildTab.OnGUI();
+                    m_BuildTab.OnGUI(GetSubWindowArea());
                     break;
                 case Mode.Inspect:
                     m_InspectTab.OnGUI(GetSubWindowArea());

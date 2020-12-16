@@ -52,6 +52,7 @@ namespace AssetBundleBrowser
         List<ToggleData> m_ToggleData;
         ToggleData m_ForceRebuild;
         ToggleData m_CopyToStreaming;
+        ToggleData m_ClearManifest;
         GUIContent m_TargetContent;
         GUIContent m_CompressionContent;
         internal enum CompressOptions
@@ -71,7 +72,7 @@ namespace AssetBundleBrowser
 
         internal AssetBundleBuildTab()
         {
-            m_AdvancedSettings = false;
+            m_AdvancedSettings = true;
             m_UserData = new BuildTabData();
             m_UserData.m_OnToggles = new List<string>();
             m_UserData.m_UseDefaultPath = true;
@@ -155,6 +156,11 @@ namespace AssetBundleBrowser
                 "Clear Folders",
                 "Will wipe out all contents of build directory as well as StreamingAssets/AssetBundles if you are choosing to copy build there.",
                 m_UserData.m_OnToggles);
+            m_ClearManifest = new ToggleData(
+                 false,
+                 "Clear Manifest",
+                 "After build completes, will clear All '.manifest' file",
+                 m_UserData.m_OnToggles);
             m_CopyToStreaming = new ToggleData(
                 false,
                 "Copy to StreamingAssets",
@@ -170,7 +176,7 @@ namespace AssetBundleBrowser
             }
         }
 
-        internal void OnGUI()
+        internal void OnGUI(Rect pos)
         {
             m_ScrollPosition = EditorGUILayout.BeginScrollView(m_ScrollPosition);
             bool newState = false;
@@ -242,6 +248,20 @@ namespace AssetBundleBrowser
                         m_UserData.m_OnToggles.Remove(m_ForceRebuild.content.text);
                     m_ForceRebuild.state = newState;
                 }
+
+                newState = GUILayout.Toggle(
+                            m_ClearManifest.state,
+                            m_ClearManifest.content);
+                if (newState != m_ClearManifest.state)
+                {
+                    if (newState)
+                        m_UserData.m_OnToggles.Add(m_ClearManifest.content.text);
+                    else
+                        m_UserData.m_OnToggles.Remove(m_ClearManifest.content.text);
+
+                    m_ClearManifest.state = newState;
+                }
+
                 newState = GUILayout.Toggle(
                     m_CopyToStreaming.state,
                     m_CopyToStreaming.content);
@@ -302,6 +322,8 @@ namespace AssetBundleBrowser
             }
             GUILayout.EndVertical();
             EditorGUILayout.EndScrollView();
+
+            MiscUtils.GUISignWithTimestamp(pos, "2020/12/16");
         }
 
         private void ExecuteBuild()
@@ -383,6 +405,8 @@ namespace AssetBundleBrowser
             };
 
             AssetBundleModel.Model.DataSource.BuildAssetBundles(buildInfo);
+            if (m_ClearManifest.state)
+                MiscUtils.ClearManifestByPath(m_UserData.m_OutputPath);
 
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 

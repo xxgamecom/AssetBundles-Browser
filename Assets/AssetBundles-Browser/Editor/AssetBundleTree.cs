@@ -181,35 +181,11 @@ namespace AssetBundleBrowser
 
         private void ExportBundleJson(List<string> varBundleNames)
         {
-            if (null == varBundleNames || varBundleNames.Count == 0) return;
-
             var tempSavaPath = EditorUtility.SaveFilePanel("Sava Current AssetBuddle Info", Path.GetFullPath(Path.Combine(Application.dataPath, "../")), "ABInfo", "json");
-            if (string.IsNullOrEmpty(tempSavaPath)) return;
-
-            //Key = AssetPath,Val = AssetBundleName;
-            var tempABAssetsDic = new Dictionary<string, string>(varBundleNames.Count);
-            try
+            if (MiscUtils.ExportBundleJson(tempSavaPath, varBundleNames))
             {
-                for (int ABi = 0; ABi < varBundleNames.Count; ++ABi)
-                {
-                    string tempBundleName = varBundleNames[ABi];
-                    var tempAssets = AssetDatabase.GetAssetPathsFromAssetBundle(tempBundleName);
-
-                    foreach (string tempAsset in tempAssets)
-                    {
-                        tempABAssetsDic.Add(tempAsset, tempBundleName);
-                    }
-                }
+                EditorUtility.RevealInFinder(tempSavaPath);
             }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                return;
-            }
-
-            File.WriteAllText(tempSavaPath, JsonFx.Json.JsonWriter.Serialize(tempABAssetsDic));
-
-            EditorUtility.RevealInFinder(tempSavaPath);
         }
 
         protected override void ContextClickedItem(int id)

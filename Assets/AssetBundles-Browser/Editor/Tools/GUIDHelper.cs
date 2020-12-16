@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 
-namespace AssetBundleBrowser
+namespace AssetBundleBrowser.Utils
 {
     public sealed class GUIDHelper : EditorWindow
     {
@@ -52,15 +52,7 @@ namespace AssetBundleBrowser
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     GUIDAndLocalFileIdentifierGUI();
             }
-            //credits
-            {
-                EditorGUILayout.Space();
-                GUIStyle _creditsStyle = new GUIStyle();
-                _creditsStyle.fontStyle = FontStyle.Italic;
-                _creditsStyle.alignment = TextAnchor.MiddleCenter;
-                _creditsStyle.normal.textColor = new Color(0, 0, 0, 0.5f);
-                GUI.Label(new Rect(15, position.height - 20, position.width, 20), "by 354888562@qq.com update:2020/10/19", _creditsStyle);
-            }
+            MiscUtils.GUISignWithTimestamp(position, "2020/10/19");
         }
         private void GUIItem(ref string varVal, string varTitle, string varTip_1, string varTips_2, Func<string, string> varFunc)
         {
