@@ -15,9 +15,9 @@ namespace AssetBundleBrowser
 
         [SerializeField]
         private InspectTabData m_Data;
-        
 
-        private Dictionary<string, List<string> > m_BundleList;
+
+        private Dictionary<string, List<string>> m_BundleList;
         private InspectBundleTree m_BundleTreeView;
         [SerializeField]
         private TreeViewState m_BundleTreeState;
@@ -159,9 +159,9 @@ namespace AssetBundleBrowser
         internal void RemoveBundleFolder(string pathToRemove)
         {
             List<string> paths = null;
-            if(m_BundleList.TryGetValue(pathToRemove, out paths))
+            if (m_BundleList.TryGetValue(pathToRemove, out paths))
             {
-                foreach(var p in paths)
+                foreach (var p in paths)
                 {
                     UnloadBundle(p);
                 }
@@ -188,7 +188,7 @@ namespace AssetBundleBrowser
         //TODO - this is largely copied from BuildTab, should maybe be shared code.
         private void BrowseForFolder(string folderPath = null)
         {
-           folderPath = EditorUtility.OpenFolderPanel("Bundle Folder", string.Empty, string.Empty);
+            folderPath = EditorUtility.OpenFolderPanel("Bundle Folder", string.Empty, string.Empty);
             if (!string.IsNullOrEmpty(folderPath))
             {
                 var gamePath = System.IO.Path.GetFullPath(".");//TODO - FileUtil.GetProjectRelativePath??
@@ -237,9 +237,9 @@ namespace AssetBundleBrowser
 
             m_BundleList.Clear();
             var pathsToRemove = new List<string>();
-            foreach(var filePath in m_Data.BundlePaths)
+            foreach (var filePath in m_Data.BundlePaths)
             {
-                if(File.Exists(filePath))
+                if (File.Exists(filePath))
                 {
                     AddBundleToList(string.Empty, filePath);
                 }
@@ -249,15 +249,15 @@ namespace AssetBundleBrowser
                     pathsToRemove.Add(filePath);
                 }
             }
-            foreach(var path in pathsToRemove)
+            foreach (var path in pathsToRemove)
             {
                 m_Data.RemovePath(path);
             }
             pathsToRemove.Clear();
 
-            foreach(var folder in m_Data.BundleFolders)
+            foreach (var folder in m_Data.BundleFolders)
             {
-                if(Directory.Exists(folder.path))
+                if (Directory.Exists(folder.path))
                 {
                     AddFilePathToList(folder.path, folder.path);
                 }
@@ -280,7 +280,7 @@ namespace AssetBundleBrowser
             List<string> bundles = null;
             m_BundleList.TryGetValue(parent, out bundles);
 
-            if(bundles == null)
+            if (bundles == null)
             {
                 bundles = new List<string>();
                 m_BundleList.Add(parent, bundles);
@@ -293,7 +293,7 @@ namespace AssetBundleBrowser
             foreach (var file in Directory.GetFiles(path))
             {
                 var ext = Path.GetExtension(file);
-                if(!notAllowedExtensions.Contains(ext))
+                if (!notAllowedExtensions.Contains(ext))
                 {
                     var f = file.Replace('\\', '/');
                     if (File.Exists(file) && !m_Data.FolderIgnoresFile(rootPath, f))
@@ -320,7 +320,7 @@ namespace AssetBundleBrowser
             {
                 m_SingleInspector.SetBundle(null);
             }
-            else if(selected.Count == 1)
+            else if (selected.Count == 1)
             {
                 AssetBundle bundle = LoadBundle(selected[0].bundlePath);
                 m_SingleInspector.SetBundle(bundle, selected[0].bundlePath, m_Data, this);
@@ -356,7 +356,7 @@ namespace AssetBundleBrowser
                 if (!m_BundlePaths.Contains(newPath))
                 {
                     var possibleFolderData = FolderDataContainingFilePath(newPath);
-                    if(possibleFolderData == null)
+                    if (possibleFolderData == null)
                     {
                         m_BundlePaths.Add(newPath);
                     }
@@ -405,9 +405,9 @@ namespace AssetBundleBrowser
 
             private bool BundleFolderContains(string folderPath)
             {
-                foreach(var bundleFolderData in BundleFolders)
+                foreach (var bundleFolderData in BundleFolders)
                 {
-                    if(Path.GetFullPath(bundleFolderData.path) == Path.GetFullPath(folderPath))
+                    if (Path.GetFullPath(bundleFolderData.path) == Path.GetFullPath(folderPath))
                     {
                         return true;
                     }
@@ -472,7 +472,7 @@ namespace AssetBundleBrowser
                     bundle = record.bundle;
                 }
             }
-                
+
             if (null == bundle)
             {
                 // Load the bundle

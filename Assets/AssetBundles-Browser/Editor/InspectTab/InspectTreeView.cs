@@ -2,49 +2,50 @@ using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 
 namespace AssetBundleBrowser
 {
-	internal class InspectTreeItem : TreeViewItem
-	{
+    internal class InspectTreeItem : TreeViewItem
+    {
         internal string bundlePath { get; private set; }
-            
-		internal InspectTreeItem(string path, int depth) : base(path.GetHashCode(), depth, path)
-		{
+
+        internal InspectTreeItem(string path, int depth) : base(path.GetHashCode(), depth, path)
+        {
             bundlePath = path;
         }
         internal InspectTreeItem(string path, int depth, string prettyName) : base(path.GetHashCode(), depth, prettyName)
         {
             bundlePath = path;
         }
-		internal InspectTreeItem(string path, string parentPath, int depth, string prettyName) : base((path+parentPath).GetHashCode(), depth, prettyName)
-		{
-			bundlePath = path;
-		}
+        internal InspectTreeItem(string path, string parentPath, int depth, string prettyName) : base((path + parentPath).GetHashCode(), depth, prettyName)
+        {
+            bundlePath = path;
+        }
     }
 
-	class InspectBundleTree : TreeView
-	{
-		AssetBundleInspectTab m_InspectTab;
-		internal InspectBundleTree(TreeViewState s, AssetBundleInspectTab parent) : base(s)
-		{
-			m_InspectTab = parent;
-			showBorder = true;
-		}
+    class InspectBundleTree : TreeView
+    {
+        AssetBundleInspectTab m_InspectTab;
+        internal InspectBundleTree(TreeViewState s, AssetBundleInspectTab parent) : base(s)
+        {
+            m_InspectTab = parent;
+            showBorder = true;
+        }
 
-		protected override TreeViewItem BuildRoot()
-		{
-			var root = new TreeViewItem(-1, -1);
-			root.children = new List<TreeViewItem>();
-			if (m_InspectTab == null)
-				Debug.Log("Unknown problem in AssetBundle Browser Inspect tab.  Restart Browser and try again, or file ticket on github.");
-			else
-			{
-				foreach (var folder in m_InspectTab.BundleList)
-				{
+        protected override TreeViewItem BuildRoot()
+        {
+            var root = new TreeViewItem(-1, -1);
+            root.children = new List<TreeViewItem>();
+            if (m_InspectTab == null)
+                Debug.Log("Unknown problem in AssetBundle Browser Inspect tab.  Restart Browser and try again, or file ticket on github.");
+            else
+            {
+                foreach (var folder in m_InspectTab.BundleList)
+                {
                     if (System.String.IsNullOrEmpty(folder.Key))
                     {
-                        foreach(var path in folder.Value)
+                        foreach (var path in folder.Value)
                             root.AddChild(new InspectTreeItem(path, 0));
                     }
                     else
@@ -61,19 +62,36 @@ namespace AssetBundleBrowser
                         }
                         root.AddChild(folderItem);
                     }
-				}
-			}
-			return root;
-		}
+                }
+            }
+            return root;
+        }
 
-		public override void OnGUI(Rect rect)
-		{
-			base.OnGUI(rect);
-			if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && rect.Contains(Event.current.mousePosition))
-			{
-				SetSelection(new int[0], TreeViewSelectionOptions.FireSelectionChanged);
-			}
-		}
+        public override void OnGUI(Rect rect)
+        {
+            base.OnGUI(rect);
+            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && rect.Contains(Event.current.mousePosition))
+            {
+                SetSelection(new int[0], TreeViewSelectionOptions.FireSelectionChanged);
+            }
+        }
+        protected override void ContextClickedItem(int id)
+        {
+            var tempMenu = new GenericMenu();
+            tempMenu.AddItem(new GUIContent("RevealInFinder"), false, RevealInFinder, id);
+            tempMenu.ShowAsContext();
+        }
+
+        private void RevealInFinder(object varID)
+        {
+            var tempTreeItem = FindItem((int)varID, rootItem);
+            var tempPath = ((TreeViewItem)tempTreeItem).displayName;
+            if (tempTreeItem is InspectTreeItem)
+            {
+                tempPath = ((InspectTreeItem)tempTreeItem).bundlePath;
+            }
+            EditorUtility.RevealInFinder(tempPath);
+        }
 
         protected override void RowGUI(RowGUIArgs args)
         {
@@ -90,7 +108,7 @@ namespace AssetBundleBrowser
                         foreach (var id in selection)
                         {
                             var item = FindItem(id, rootItem);
-                            if(item.depth == 0)
+                            if (item.depth == 0)
                                 RemoveItem(item);
                         }
                     }
@@ -111,27 +129,27 @@ namespace AssetBundleBrowser
                 m_InspectTab.RemoveBundleFolder(item.displayName);
         }
         protected override void SelectionChanged(IList<int> selectedIds)
-		{
-			base.SelectionChanged(selectedIds);
+        {
+            base.SelectionChanged(selectedIds);
 
             if (selectedIds == null)
                 return;
 
-			if (selectedIds.Count > 0)
-			{
-                m_InspectTab.SetBundleItem(FindRows(selectedIds).Select(tvi => tvi as InspectTreeItem).ToList());
-				//m_InspectTab.SetBundleItem(FindItem(selectedIds[0], rootItem) as InspectTreeItem);
-			}
-			else
+            if (selectedIds.Count > 0)
             {
-				m_InspectTab.SetBundleItem(null);
+                m_InspectTab.SetBundleItem(FindRows(selectedIds).Select(tvi => tvi as InspectTreeItem).ToList());
+                //m_InspectTab.SetBundleItem(FindItem(selectedIds[0], rootItem) as InspectTreeItem);
             }
-		}
+            else
+            {
+                m_InspectTab.SetBundleItem(null);
+            }
+        }
 
-		protected override bool CanMultiSelect(TreeViewItem item)
-		{
-			return true;
-		}
-	}
+        protected override bool CanMultiSelect(TreeViewItem item)
+        {
+            return true;
+        }
+    }
 
 }

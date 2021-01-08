@@ -30,7 +30,7 @@ namespace AssetBundleBrowser
 
             //members
             m_Editor = null;
-            if(bundle != null)
+            if (bundle != null)
             {
                 m_Editor = Editor.CreateEditor(bundle);
             }
@@ -53,7 +53,7 @@ namespace AssetBundleBrowser
                 EditorGUILayout.EndScrollView();
                 GUILayout.EndArea();
             }
-            else if(!string.IsNullOrEmpty(currentPath))
+            else if (!string.IsNullOrEmpty(currentPath))
             {
                 var style = new GUIStyle(GUI.skin.label);
                 style.alignment = TextAnchor.MiddleCenter;
@@ -68,10 +68,10 @@ namespace AssetBundleBrowser
                         if (!possibleFolderData.ignoredFiles.Contains(currentPath))
                             possibleFolderData.ignoredFiles.Add(currentPath);
 
-                        if(m_assetBundleInspectTab != null)
+                        if (m_assetBundleInspectTab != null)
                             m_assetBundleInspectTab.RefreshBundles();
                     }
-                } 
+                }
             }
         }
     }
@@ -92,7 +92,7 @@ namespace AssetBundleBrowser
                 GUILayout.Label(new GUIContent("Name: " + bundle.name), leftStyle);
 
                 long fileSize = -1;
-                if(!System.String.IsNullOrEmpty(SingleBundleInspector.currentPath) && File.Exists(SingleBundleInspector.currentPath) )
+                if (!System.String.IsNullOrEmpty(SingleBundleInspector.currentPath) && File.Exists(SingleBundleInspector.currentPath))
                 {
                     System.IO.FileInfo fileInfo = new System.IO.FileInfo(SingleBundleInspector.currentPath);
                     fileSize = fileInfo.Length;
@@ -124,6 +124,39 @@ namespace AssetBundleBrowser
                 base.OnInspectorGUI();
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.Space();
+
+            //if (GUILayout.Button("ExportAssets"))
+            //{
+            //    var tempAssets = bundle.LoadAllAssets();
+            //    Debug.LogError(tempAssets.Length);
+            //    foreach (var item in tempAssets)
+            //    {
+            //        Debug.LogError(item.GetType());
+            //        if (item.GetType() == typeof(GameObject))
+            //        {
+            //            GameObject.Instantiate(item);
+            //        }
+            //        if (item.GetType() == typeof(Texture2D))
+            //        {
+            //            var tempTex = item as Texture2D;
+            //            var temp = new Texture2D(tempTex.width, tempTex.height, tempTex.format, tempTex.mipmapCount != 0);
+            //            Graphics.CopyTexture(tempTex, temp);
+
+            //            var tempD = new Texture2D(tempTex.width, tempTex.height, tempTex.format, true);
+            //            for (int i = 0; i < temp.width; i++)
+            //            {
+            //                for (int j = 0; j < temp.height; j++)
+            //                {
+            //                    tempD.SetPixel(i, j, temp.GetPixel(i, j));
+            //                }
+            //            }
+
+            //            File.WriteAllBytes("Assets/MyMaterial.png", tempD.EncodeToPNG());
+            //        }
+            //    }
+            //}
         }
     }
 }
