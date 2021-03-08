@@ -13,7 +13,7 @@ using UScene = UnityEngine.SceneManagement.Scene;
 
 namespace AssetBundleBrowser.Utils
 {
-    public class AssetBundleBuildHash : MonoBehaviour
+    public class AssetBundleBuildHash
     {
         #region [Struct]
         public struct BuildUsageTagGlobal
