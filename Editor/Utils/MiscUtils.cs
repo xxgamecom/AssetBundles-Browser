@@ -72,11 +72,8 @@ namespace AssetBundleBrowser
         #region [GUI]
         public static void GUISignWithTimestamp(Rect varPosition, string varTimestamp)
         {
-#if UNITY_2019_1_OR_NEWER
-            EditorGUILayout.Space(5);
-#else
             EditorGUILayout.Space();
-#endif
+
             GUIStyle _creditsStyle = new GUIStyle();
             _creditsStyle.fontStyle = FontStyle.Italic;
             _creditsStyle.alignment = TextAnchor.MiddleCenter;
