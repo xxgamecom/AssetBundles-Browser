@@ -5,6 +5,7 @@ using UnityEditor.IMGUI.Controls;
 using System.Linq;
 using System;
 using System.IO;
+using AssetBundleBrowser.AdvAssetBundle;
 
 namespace AssetBundleBrowser
 {
@@ -134,12 +135,18 @@ namespace AssetBundleBrowser
             }
             menu.AddSeparator(string.Empty);
 
-            if (AssetDatabase.GetAllAssetBundleNames().Length != 0)
+            var tempExitAB = AssetDatabase.GetAllAssetBundleNames().Length != 0;
+            if (tempExitAB)
             {
                 menu.AddItem(new GUIContent("Export all data"), false, ExportAllABInfo, selectedNodes);
             }
-
             menu.AddItem(new GUIContent("Import data"), false, ImportABInfo, selectedNodes);
+
+            if (tempExitAB)
+            {
+                menu.AddSeparator(string.Empty);
+                menu.AddItem(new GUIContent("Redundancies data"), false, RedundanciesAB, selectedNodes);
+            }
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(new GUIContent("Reload all data"), false, ForceReloadData, selectedNodes);
@@ -257,6 +264,31 @@ namespace AssetBundleBrowser
         void ForceReloadData(object context)
         {
             AssetBundleModel.Model.ForceReloadData(this);
+        }
+
+        void RedundanciesAB(object context)
+        {
+            try
+            {
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "GetAllAssetBundleNames", 0.1f);
+                var tempABs = AssetDatabase.GetAllAssetBundleNames();
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "Optimize", 0.25f);
+                RedundanciesOp.Optimize(ref tempABs);
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.7f);
+                AssetDatabase.RemoveUnusedAssetBundleNames();
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.75f);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.9f);
+                AssetBundleModel.Model.ForceReloadData(this);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
         }
 
         void CreateNewSiblingFolder(object context)

@@ -67,6 +67,15 @@ namespace AssetBundleBrowser
 
             return true;
         }
+        public static bool ValidateAsset(string varABName)
+        {
+            if (!varABName.StartsWith("Assets/")) return false;
+
+            var tempExt = Path.GetExtension(varABName);
+            if (tempExt == ".dll" || tempExt == ".cs" || tempExt == ".meta" || tempExt == ".js" || tempExt == ".boo") return false;
+
+            return true;
+        }
         #endregion
 
         #region [GUI]

@@ -646,7 +646,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         //this version of CreateAsset is only used for dependent assets. 
         internal static AssetInfo CreateAsset(string name, AssetInfo parent)
         {
-            if (ValidateAsset(name))
+            if (MiscUtils.ValidateAsset(name))
             {
                 var bundleName = GetBundleName(name);
                 return CreateAsset(name, bundleName, parent);
@@ -656,7 +656,7 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         internal static AssetInfo CreateAsset(string name, string bundleName)
         {
-            if (ValidateAsset(name))
+            if (MiscUtils.ValidateAsset(name))
             {
                 return CreateAsset(name, bundleName, null);
             }
@@ -681,17 +681,6 @@ namespace AssetBundleBrowser.AssetBundleModel
                 return info;
             }
 
-        }
-
-        internal static bool ValidateAsset(string name)
-        {
-            if (!name.StartsWith("Assets/"))
-                return false;
-            string ext = System.IO.Path.GetExtension(name);
-            if (ext == ".dll" || ext == ".cs" || ext == ".meta" || ext == ".js" || ext == ".boo")
-                return false;
-
-            return true;
         }
 
         internal static string GetBundleName(string asset)
