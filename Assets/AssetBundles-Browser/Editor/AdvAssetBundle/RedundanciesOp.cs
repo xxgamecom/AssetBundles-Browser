@@ -70,7 +70,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
 
             using (new UDebugTimeTick("Push Repeat Assets to AB or Creat AB Unit"))
             {
-                PushSameAssetToABUnit(varQuerier, tempRepeatAssets, tempABBeDep);
+                PushSameAssetToABUnit(varQuerier, tempRepeatAssets, tempAssetBeDeps);
             }
 
         }
@@ -233,7 +233,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 }
 
                 var tempSameDeps = new List<int>() { iR };
-                for (int iR2 = 0; iR2 < varRepeatAssets.Count; ++iR2)
+                for (int iR2 = iR + 1; iR2 < varRepeatAssets.Count; ++iR2)
                 {
                     var tempAsetBenDeps2 = varAssetBeDep[varRepeatAssets[iR2]];
                     if (tempAsetBenDeps2.Count != tempAssetBeDeps.Count) continue;
@@ -252,10 +252,10 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 }
 
                 var tempNewUnitName = string.Format(AutoGenABFormat, HashABUnitName(tempAssetBeDeps));
-                for (int iS = 0; iS < tempSameDeps.Count; ++iS)
+                for (int iSD = tempSameDeps.Count - 1; iSD >= 0; --iSD)
                 {
-                    var tempIdx = tempSameDeps[iS];
-                    var tempPath = varRepeatAssets[iS];
+                    var tempIdx = tempSameDeps[iSD];
+                    var tempPath = varRepeatAssets[tempIdx];
                     varQuerier.SetAssetBundleName(tempPath, tempNewUnitName);
                     varRepeatAssets.RemoveAt(tempIdx);
                 }
