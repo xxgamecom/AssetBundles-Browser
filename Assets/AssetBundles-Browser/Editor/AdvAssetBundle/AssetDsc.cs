@@ -10,15 +10,16 @@ namespace AssetBundleBrowser.AdvAssetBundle
         #endregion
 
         #region [Construct]
-        public AssetDsc() { }
         public AssetDsc(string varGUID) { AssetsGUID = varGUID; }
+        public AssetDsc(string varGUID, string varAssetBundleName) { AssetsGUID = varGUID; AssetBundleName = varAssetBundleName; }
         #endregion
 
         #region [API]
-        public void TagAssetBundleName(string varAssetBundleName)
+        public AssetDsc TagAssetBundleName(string varAssetBundleName)
         {
             if (string.IsNullOrEmpty(varAssetBundleName)) throw new ArgumentException("Can't tag NullOrEmpty string to AssetBundle.");
             AssetBundleName = varAssetBundleName.ToLower();
+            return this;
         }
         #endregion
 

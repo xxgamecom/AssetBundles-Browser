@@ -56,7 +56,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal BundleNameData(string name) { SetName(name); }
         internal BundleNameData(string path, string name)
         {
-            string finalName = System.String.IsNullOrEmpty(path) ? "" : path + '/';
+            string finalName = string.IsNullOrEmpty(path) ? "" : path + '/';
             finalName += name;
             SetName(finalName);
         }
@@ -70,7 +70,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal void SetBundleName(string bundleName, string variantName)
         {
             string name = bundleName;
-            name += System.String.IsNullOrEmpty(variantName) ? "" : "." + variantName;
+            name += string.IsNullOrEmpty(variantName) ? "" : "." + variantName;
             SetName(name);
         }
         internal string bundleName
@@ -89,7 +89,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 m_VariantName = value;
                 m_FullNativeName = m_FullBundleName;
-                m_FullNativeName += System.String.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
+                m_FullNativeName += string.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
             }
         }
         internal List<string> pathTokens
@@ -157,7 +157,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             }
             m_FullBundleName += m_ShortName;
             m_FullNativeName = m_FullBundleName;
-            m_FullNativeName += System.String.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
+            m_FullNativeName += string.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
         }
     }
 

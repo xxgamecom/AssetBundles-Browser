@@ -14,6 +14,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
         #endregion
 
         #region [API]
+        public static void Optimize(ref string[] varAssetBundles) => Optimize(DefalutQuerier, ref varAssetBundles);
         public static void Optimize(IAssetDataQuerier varQuerier, ref string[] varAssetBundles)
         {
             using (new UDebugTimeTick("Sort all AssetBundle Names"))
@@ -74,8 +75,6 @@ namespace AssetBundleBrowser.AdvAssetBundle
             }
 
         }
-        public static void Optimize(ref string[] varAssetBundles)
-            => Optimize(DefalutQuerier, ref varAssetBundles);
         #endregion
 
         #region [Business]

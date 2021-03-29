@@ -478,8 +478,9 @@ namespace AssetBundleBrowser
             if (sortedColumns.Length == 0)
                 return;
 
-            List<AssetBundleModel.AssetTreeItem> assetList = new List<AssetBundleModel.AssetTreeItem>();
-            foreach (var item in rootItem.children)
+            var tempChilds = rootItem.children;
+            var assetList = new List<AssetBundleModel.AssetTreeItem>(tempChilds.Count);
+            foreach (var item in tempChilds)
             {
                 assetList.Add(item as AssetBundleModel.AssetTreeItem);
             }
@@ -497,7 +498,11 @@ namespace AssetBundleBrowser
                 case SortOption.Asset:
                     return myTypes.Order(l => l.displayName, ascending);
                 case SortOption.AssetType:
-                    return myTypes.Order(l => l.asset.assetType.ToString().Substring(l.asset.assetType.ToString().LastIndexOf('.') + 1), ascending);
+                    return myTypes.Order(l =>
+                    {
+                        var tempAstTypeStr = l.asset.assetType.ToString();
+                        return tempAstTypeStr.Substring(tempAstTypeStr.LastIndexOf('.') + 1);
+                    } , ascending);
                 case SortOption.Size:
                     return myTypes.Order(l => l.asset.fileSize, ascending);
                 case SortOption.USize:

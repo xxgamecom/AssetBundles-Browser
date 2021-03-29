@@ -227,7 +227,6 @@ namespace AssetBundleBrowser
         {
             ClearData();
 
-
             if (m_Data.BundlePaths == null)
                 return;
 

@@ -3,7 +3,12 @@ guid: edf70aa889672f6428c07ca23d5c972a
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert2
+    second: {fileID: 2100000, guid: af1fac0cc6729ed44aefef64cbe30f3a, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -93,5 +98,5 @@ ModelImporter:
   avatarSetup: 0
   additionalBone: 0
   userData: 
-  assetBundleName: 
+  assetBundleName: cylinder_b
   assetBundleVariant: 

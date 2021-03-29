@@ -666,7 +666,7 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         private static AssetInfo CreateAsset(string name, string bundleName, AssetInfo parent)
         {
-            if (!System.String.IsNullOrEmpty(bundleName))
+            if (!string.IsNullOrEmpty(bundleName))
             {
                 return new AssetInfo(name, bundleName);
             }
@@ -691,17 +691,17 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         internal static int RegisterAsset(AssetInfo asset, string bundle)
         {
-            if (s_DependencyTracker.ContainsKey(asset.fullAssetName))
+            HashSet<string> bundles;
+            if (s_DependencyTracker.TryGetValue(asset.fullAssetName, out bundles))
             {
-                s_DependencyTracker[asset.fullAssetName].Add(bundle);
-                int count = s_DependencyTracker[asset.fullAssetName].Count;
+                bundles.Add(bundle);
+                int count = bundles.Count;
                 if (count > 1)
                     asset.SetMessageFlag(MessageSystem.MessageFlag.AssetsDuplicatedInMultBundles, true);
                 return count;
             }
 
-            var bundles = new HashSet<string>();
-            bundles.Add(bundle);
+            bundles = new HashSet<string>() { bundle };
             s_DependencyTracker.Add(asset.fullAssetName, bundles);
             return 1;
         }

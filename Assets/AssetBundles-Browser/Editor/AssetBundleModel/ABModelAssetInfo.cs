@@ -76,10 +76,49 @@ namespace AssetBundleBrowser.AssetBundleModel
     {
         internal bool isScene { get; set; }
         internal bool isFolder { get; set; }
-        internal long fileSize;
 
-        internal long UfileSize;
-        internal Type assetType;
+        private long _fileSize = -1;
+        internal long fileSize
+        {
+            get 
+            {
+                if (_fileSize == -1)
+                {
+                    //TODO - maybe there's a way to ask the AssetDatabase for this size info.
+                    var fileInfo = new FileInfo(m_AssetName);
+                    _fileSize = fileInfo.Exists ? fileInfo.Length : 0;
+                }
+                return _fileSize;
+            }
+        }
+
+        private long _UfileSize = 0;
+        internal long UfileSize
+        {
+            get
+            {
+                if (fileSize == 0) return 0;
+                if (_UfileSize != 0) return _UfileSize;
+                if (assetType == typeof(Texture2D))
+                {
+                    _UfileSize = assetType != typeof(Texture2D) ? 0 : AssetDatabase.LoadAssetAtPath<Texture2D>(m_AssetName).GetRawTextureData().LongLength;
+                }
+                return _UfileSize;
+            }
+        }
+
+        private Type _assetType;
+        internal Type assetType
+        {
+            get
+            {
+                if (_assetType == null)
+                {
+                    _assetType = AssetDatabase.GetMainAssetTypeAtPath(m_AssetName);
+                }
+                return _assetType;
+            }
+        }
 
         private HashSet<string> m_Parents;
         private string m_AssetName;
@@ -103,19 +142,6 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 m_AssetName = value;
                 m_DisplayName = Path.GetFileNameWithoutExtension(m_AssetName);
-
-                //TODO - maybe there's a way to ask the AssetDatabase for this size info.
-                FileInfo fileInfo = new FileInfo(m_AssetName);
-                if (fileInfo.Exists)
-                {
-                    assetType = AssetDatabase.GetMainAssetTypeAtPath(m_AssetName);
-                    fileSize = fileInfo.Length;
-                    UfileSize = assetType != typeof(Texture2D) ? 0 : AssetDatabase.LoadAssetAtPath<Texture2D>(m_AssetName).GetRawTextureData().LongLength;
-                }
-                else
-                {
-                    fileSize = 0;
-                }
             }
         }
         internal string displayName
@@ -246,14 +272,23 @@ namespace AssetBundleBrowser.AssetBundleModel
             }
             else
             {
-                var tempDeps = AssetDatabase.GetDependencies(m_AssetName, true);
-                foreach (var dep in tempDeps)
+                if (!MiscUtils.IsAtomAsset(m_AssetName))
                 {
-                    if (dep == m_AssetName) continue;
+                    var tempDeps = AssetDatabase.GetDependencies(m_AssetName, true);
+                    //TOD - for collection .ext debug.
+                    //if (tempDeps.Length == 1 && tempDeps[0] == m_AssetName)
+                    //{
+                    //    Debug.LogWarningFormat("AtomAssetExtension maybe need upgrade.[{0}]", m_AssetName);
+                    //}
+                    m_dependencies.Capacity = tempDeps.Length;
+                    foreach (var dep in tempDeps)
+                    {
+                        if (dep == m_AssetName) continue;
 
-                    var asset = Model.CreateAsset(dep, this);
-                    if (asset != null)
-                        m_dependencies.Add(asset);
+                        var asset = Model.CreateAsset(dep, this);
+                        if (asset != null)
+                            m_dependencies.Add(asset);
+                    }
                 }
             }
 

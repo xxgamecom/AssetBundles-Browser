@@ -8,6 +8,11 @@ namespace AssetBundleBrowser
 {
     public static class MiscUtils
     {
+        #region [Fields]
+        private static HashSet<string> ValidateExtension = new HashSet<string> { ".dll", ".cs", ".meta", ".js", ".boo" };
+        private static HashSet<string> AtomAssetExtension = new HashSet<string> { ".anim", ".png", "jpg", ".psd" };
+        #endregion
+
         #region [API]
         public static void ClearManifestByPath(string varOutputPath)
         {
@@ -71,10 +76,15 @@ namespace AssetBundleBrowser
         {
             if (!varABName.StartsWith("Assets/")) return false;
 
-            var tempExt = Path.GetExtension(varABName);
-            if (tempExt == ".dll" || tempExt == ".cs" || tempExt == ".meta" || tempExt == ".js" || tempExt == ".boo") return false;
+            var tempExt = Path.GetExtension(varABName).ToLower();
+            return !ValidateExtension.Contains(tempExt);
+        }
+        public static bool IsAtomAsset(string pathName)
+        {
+            if (!pathName.StartsWith("Assets/")) return false;
 
-            return true;
+            var tempExt = Path.GetExtension(pathName).ToLower();
+            return AtomAssetExtension.Contains(tempExt);
         }
         #endregion
 
