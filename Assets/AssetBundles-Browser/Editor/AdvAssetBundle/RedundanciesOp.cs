@@ -28,7 +28,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
             //K = AB,V = Been Dep of Key;
             var tempABBeDep = new Dictionary<string, List<string>>();
             //K = AB,V = Key's Deps;
-            var tempABDepABs = new Dictionary<string, List<string>>();
+            var tempABDepABs = new Dictionary<string, List<string>>(varAssetBundles.Length);
             using (new UDebugTimeTick("Collecting AssetBundle Depends info."))
             {
                 CollectABDepInfos(varQuerier, varAssetBundles, tempAssetBeDeps, tempABBeDep, tempABDepABs);

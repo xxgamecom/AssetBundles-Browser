@@ -799,7 +799,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                     return s_shaderIcon;
                 case BundleDataInfo.AssetType.Font:
                     return s_fontIcon;
-                case BundleDataInfo.AssetType.ShaderVariants:
+                case BundleDataInfo.AssetType.ShaderVariantCollection:
                     return s_shaderVaroantsIcon;
                 case BundleDataInfo.AssetType.AudioClip:
                     return s_audioclipIcon;

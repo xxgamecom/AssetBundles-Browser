@@ -235,28 +235,28 @@ namespace AssetBundleBrowser.AssetBundleModel
         List<AssetInfo> m_dependencies = null;
         internal List<AssetInfo> GetDependencies()
         {
+            if (m_dependencies != null) return m_dependencies;
+
+            m_dependencies = new List<AssetInfo>();
             //TODO - not sure this refreshes enough. need to build tests around that.
-            if (m_dependencies == null)
+            if (AssetDatabase.IsValidFolder(m_AssetName))
             {
-                m_dependencies = new List<AssetInfo>();
-                if (AssetDatabase.IsValidFolder(m_AssetName))
+                //if we have a folder, its dependencies were already pulled in through alternate means.  no need to GatherFoldersAndFiles
+                //GatherFoldersAndFiles();
+            }
+            else
+            {
+                var tempDeps = AssetDatabase.GetDependencies(m_AssetName, true);
+                foreach (var dep in tempDeps)
                 {
-                    //if we have a folder, its dependencies were already pulled in through alternate means.  no need to GatherFoldersAndFiles
-                    //GatherFoldersAndFiles();
-                }
-                else
-                {
-                    foreach (var dep in AssetDatabase.GetDependencies(m_AssetName, true))
-                    {
-                        if (dep != m_AssetName)
-                        {
-                            var asset = Model.CreateAsset(dep, this);
-                            if (asset != null)
-                                m_dependencies.Add(asset);
-                        }
-                    }
+                    if (dep == m_AssetName) continue;
+
+                    var asset = Model.CreateAsset(dep, this);
+                    if (asset != null)
+                        m_dependencies.Add(asset);
                 }
             }
+
             return m_dependencies;
         }
 

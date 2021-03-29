@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.IMGUI.Controls;
 
+using AnimatorController = UnityEditor.Animations.AnimatorController;
+
 namespace AssetBundleBrowser.AssetBundleModel
 {
     internal sealed class BundleTreeItem : TreeViewItem
@@ -283,7 +285,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             Material,
             AnimationClip,
             AnimatorController,
-            ShaderVariants,
+            ShaderVariantCollection,
             Font,
             DefaultType = GameObject,
         }
@@ -347,14 +349,14 @@ namespace AssetBundleBrowser.AssetBundleModel
 
             foreach (var asset in m_DependentAssets)
             {
-                AssetBundleModel.Model.UnRegisterAsset(asset, m_Name.fullNativeName);
+                Model.UnRegisterAsset(asset, m_Name.fullNativeName);
             }
             m_DependentAssets.Clear();
             m_BundleDependencies.Clear();
             
             bool assetInBundle = false;
             bool sceneError = false;
-            var assets = AssetBundleModel.Model.DataSource.GetAssetPathsFromAssetBundle(m_Name.fullNativeName);
+            var assets = Model.DataSource.GetAssetPathsFromAssetBundle(m_Name.fullNativeName);
             foreach(var assetName in assets)
             {
                 AssetType tempType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
@@ -385,21 +387,19 @@ namespace AssetBundleBrowser.AssetBundleModel
                 }
 
                 var bundleName = Model.GetBundleName(assetName);
-                if (System.String.IsNullOrEmpty(bundleName))  
+                if (string.IsNullOrEmpty(bundleName))  
                 {
                     ///we get here if the current asset is only added due to being in an explicitly added folder
-                    
-
                     var partialPath = assetName;
                     while(
-                        !System.String.IsNullOrEmpty(partialPath) && 
+                        !string.IsNullOrEmpty(partialPath) && 
                         partialPath != "Assets" &&
-                        System.String.IsNullOrEmpty(bundleName))
+                        string.IsNullOrEmpty(bundleName))
                     {
                         partialPath = partialPath.Substring(0, partialPath.LastIndexOf('/'));
                         bundleName = Model.GetBundleName(partialPath);
                     }
-                    if(!System.String.IsNullOrEmpty(bundleName))
+                    if(!string.IsNullOrEmpty(bundleName))
                     {
                         var folderAsset = Model.CreateAsset(partialPath, bundleName);
                         folderAsset.isFolder = true;
@@ -418,15 +418,10 @@ namespace AssetBundleBrowser.AssetBundleModel
                                 if (last != null)
                                     m_TotalSize += last.fileSize;
                             }
-                            m_AssetType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
-                            switch (m_AssetType)
+                            m_AssetType = tempType;// AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
+                            if (m_AssetType == AssetType.SceneAsset)
                             {
-                                case AssetType.SceneAsset:
-                                    {
-                                        m_ConcreteAssets.Last().isScene = true;
-                                    }
-                                    break;
-                                default: { } break;
+                                m_ConcreteAssets.Last().isScene = true;
                             }
                         }
                     }
@@ -443,15 +438,10 @@ namespace AssetBundleBrowser.AssetBundleModel
                         //    m_IsSceneBundle = true;
                         //    m_ConcreteAssets.Last().isScene = true;
                         //}
-                        m_AssetType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
-                        switch (m_AssetType)
+                        m_AssetType = tempType;// AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
+                        if (m_AssetType == AssetType.SceneAsset)
                         {
-                            case AssetType.SceneAsset:
-                                {
-                                    m_ConcreteAssets.Last().isScene = true;
-                                }
-                                break;
-                            default: { } break;
+                            m_ConcreteAssets.Last().isScene = true;
                         }
                     }
                 }
@@ -479,53 +469,25 @@ namespace AssetBundleBrowser.AssetBundleModel
             m_DependentCounter = 0;
             m_Dirty = true;
         }
+        private static Dictionary<Type, AssetType> AssetTypeMap = new Dictionary<Type, AssetType>
+        {
+            {typeof(GameObject),AssetType.GameObject},
+            {typeof(SceneAsset),AssetType.SceneAsset},
+            {typeof(Texture2D),AssetType.Texture2D},
+            {typeof(TextAsset),AssetType.TextAsset},
+            {typeof(Shader),AssetType.Shader},
+            {typeof(AudioClip),AssetType.AudioClip},
+            {typeof(Material),AssetType.Material},
+            {typeof(AnimationClip),AssetType.AnimationClip},
+            {typeof(AnimatorController),AssetType.AnimatorController},
+            {typeof(ShaderVariantCollection),AssetType.ShaderVariantCollection},
+            {typeof(Font),AssetType.Font},
+        };
         private AssetType AnalysisAssetType(Type varType)
         {
-            if (varType == typeof(GameObject))
-            {
-                return AssetType.GameObject;
-            }
-            if (varType == typeof(SceneAsset))
-            {
-                return AssetType.SceneAsset;
-            }
-            if (varType == typeof(Texture2D))
-            {
-                return AssetType.Texture2D;
-            }
-            if (varType == typeof(TextAsset))
-            {
-                return AssetType.TextAsset;
-            }
-            if (varType == typeof(Shader))
-            {
-                return AssetType.Shader;
-            }
-            if (varType == typeof(AudioClip))
-            {
-                return AssetType.AudioClip;
-            }
-            if (varType == typeof(Material))
-            {
-                return AssetType.Material;
-            }
-            if (varType == typeof(AnimationClip))
-            {
-                return AssetType.AnimationClip;
-            }
-            if (varType == typeof(UnityEditor.Animations.AnimatorController))
-            {
-                return AssetType.AnimatorController;
-            }
-            if (varType == typeof(ShaderVariantCollection))
-            {
-                return AssetType.ShaderVariants;
-            }
-            if (varType == typeof(Font))
-            {
-                return AssetType.Font;
-            }
-            return AssetType.DefaultType;
+            var tempType = AssetType.DefaultType;
+            AssetTypeMap.TryGetValue(varType, out tempType);
+            return tempType;
         }
         internal override void AddAssetsToNode(AssetTreeItem node)
         {
@@ -572,22 +534,18 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         private void GatherDependencies(AssetInfo asset, string parentBundle = "")
         {
-            if (System.String.IsNullOrEmpty(parentBundle))
+            if (asset == null) return;
+
+            if (string.IsNullOrEmpty(parentBundle))
                 parentBundle = asset.bundleName;
 
-            if (asset == null)
-                return;
-
             var deps = asset.GetDependencies();
-            if (deps == null)
-                return;
-
             foreach (var ai in deps)
             {
                 if (ai == asset || m_ConcreteAssets.Contains(ai) || m_DependentAssets.Contains(ai))
                     continue;
 
-                var bundleName = AssetBundleModel.Model.DataSource.GetImplicitAssetBundleName(ai.fullAssetName);
+                var bundleName = Model.DataSource.GetImplicitAssetBundleName(ai.fullAssetName);
                 if (string.IsNullOrEmpty(bundleName))
                 {
                     m_DependentAssets.Add(ai);
