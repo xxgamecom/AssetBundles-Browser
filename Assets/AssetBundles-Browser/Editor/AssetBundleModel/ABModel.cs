@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Assertions;
@@ -480,13 +481,13 @@ namespace AssetBundleBrowser.AssetBundleModel
             foreach (var name in nameList)
             {
                 var node = FindBundle(name);
-                if (node != null)
-                {
-                    var message = "Failed to delete bundle named: ";
-                    message += name.fullNativeName;
-                    message += ".  Most likely this is due to the bundle being assigned to a folder in your Assets directory, AND that folder is either empty or only contains assets that are explicitly assigned elsewhere.";
-                    Debug.LogError(message);
-                }
+                if (node == null) continue;
+
+                var message = "Failed to delete bundle named: [" + name.fullNativeName + "]. ";
+                message += "Most likely this is due to the bundle being assigned to a folder in your Assets directory, AND that folder is either empty or only contains assets that are explicitly assigned elsewhere.\n";
+                message += "BundleAssets Info: ";
+                message += string.Join(";", AssetDatabase.GetAssetPathsFromAssetBundle(name.bundleName));
+                Debug.LogError(message);
             }
         }
 
@@ -617,31 +618,30 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         internal static void ExecuteAssetMove(bool forceAct = true)
         {
+            if (!forceAct) return;
+
             var size = s_MoveData.Count;
-            if (forceAct)
+            if (size > 0)
             {
-                if (size > 0)
+                bool autoRefresh = EditorPrefs.GetBool("kAutoRefresh");
+                EditorPrefs.SetBool("kAutoRefresh", false);
+                AssetDatabase.StartAssetEditing();
+                EditorUtility.DisplayProgressBar("Moving assets to bundles", "", 0);
+                for (int i = 0; i < size; i++)
                 {
-                    bool autoRefresh = EditorPrefs.GetBool("kAutoRefresh");
-                    EditorPrefs.SetBool("kAutoRefresh", false);
-                    AssetDatabase.StartAssetEditing();
-                    EditorUtility.DisplayProgressBar("Moving assets to bundles", "", 0);
-                    for (int i = 0; i < size; i++)
-                    {
-                        EditorUtility.DisplayProgressBar("Moving assets to bundle " + s_MoveData[i].bundleName, System.IO.Path.GetFileNameWithoutExtension(s_MoveData[i].assetName), (float)i / (float)size);
-                        s_MoveData[i].Apply();
-                    }
-                    EditorUtility.ClearProgressBar();
-                    AssetDatabase.StopAssetEditing();
-                    EditorPrefs.SetBool("kAutoRefresh", autoRefresh);
-                    s_MoveData.Clear();
+                    EditorUtility.DisplayProgressBar("Moving assets to bundle " + s_MoveData[i].bundleName, Path.GetFileNameWithoutExtension(s_MoveData[i].assetName), (float)i / (float)size);
+                    s_MoveData[i].Apply();
                 }
-                if (!DataSource.IsReadOnly())
-                {
-                    DataSource.RemoveUnusedAssetBundleNames();
-                }
-                Refresh();
+                EditorUtility.ClearProgressBar();
+                AssetDatabase.StopAssetEditing();
+                EditorPrefs.SetBool("kAutoRefresh", autoRefresh);
+                s_MoveData.Clear();
             }
+            if (!DataSource.IsReadOnly())
+            {
+                DataSource.RemoveUnusedAssetBundleNames();
+            }
+            Refresh();
         }
 
         //this version of CreateAsset is only used for dependent assets. 

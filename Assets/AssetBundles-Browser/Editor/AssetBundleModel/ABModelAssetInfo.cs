@@ -280,7 +280,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                     //{
                     //    Debug.LogWarningFormat("AtomAssetExtension maybe need upgrade.[{0}]", m_AssetName);
                     //}
-                    m_dependencies.Capacity = tempDeps.Length;
+                    m_dependencies.Capacity = tempDeps.Length - 1;
                     foreach (var dep in tempDeps)
                     {
                         if (dep == m_AssetName) continue;

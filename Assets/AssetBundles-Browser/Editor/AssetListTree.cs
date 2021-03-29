@@ -1,9 +1,11 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
-using System.Linq;
 //using System;
+
+using UObject = UnityEngine.Object;
 
 
 namespace AssetBundleBrowser
@@ -12,7 +14,7 @@ namespace AssetBundleBrowser
     {
         List<AssetBundleModel.BundleInfo> m_SourceBundles = new List<AssetBundleModel.BundleInfo>();
         AssetBundleManageTab m_Controller;
-        List<UnityEngine.Object> m_EmptyObjectList = new List<UnityEngine.Object>();
+        List<UObject> m_EmptyObjectList = new List<UObject>();
 
         internal static MultiColumnHeaderState CreateDefaultMultiColumnHeaderState()
         {
@@ -399,7 +401,7 @@ namespace AssetBundleBrowser
             //var bundles = new List<AssetBundleModel.BundleInfo>();
             foreach (var node in selectedNodes)
             {
-                if (!System.String.IsNullOrEmpty(node.asset.bundleName))
+                if (!string.IsNullOrEmpty(node.asset.bundleName))
                     assets.Add(node.asset);
             }
             AssetBundleModel.Model.MoveAssetToBundle(assets, string.Empty, string.Empty);
@@ -421,7 +423,7 @@ namespace AssetBundleBrowser
             var assets = new List<AssetBundleModel.AssetInfo>();
             foreach (var node in selectedNodes)
             {
-                if (!System.String.IsNullOrEmpty(node.asset.bundleName))
+                if (!string.IsNullOrEmpty(node.asset.bundleName))
                     assets.Add(node.asset);
             }
             AssetBundleModel.Model.MoveAssetToBundle(assets, tempBundlename, string.Empty);

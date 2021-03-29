@@ -37,7 +37,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         }
     }
 
-    internal class BundleNameData
+    internal sealed class BundleNameData
     {
         private List<string> m_PathTokens;
         private string m_FullBundleName;
@@ -287,7 +287,8 @@ namespace AssetBundleBrowser.AssetBundleModel
             AnimatorController,
             ShaderVariantCollection,
             Font,
-            DefaultType = GameObject,
+            Unkown,
+            DefaultType = Unkown,
         }
 
         protected List<AssetInfo> m_ConcreteAssets;
@@ -311,7 +312,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         {
             foreach (var asset in m_DependentAssets)
             {
-                AssetBundleModel.Model.UnRegisterAsset(asset, m_Name.fullNativeName);
+                Model.UnRegisterAsset(asset, m_Name.fullNativeName);
             }
         }
         internal override bool HandleRename(string newName, int reverseDepth)
@@ -360,30 +361,26 @@ namespace AssetBundleBrowser.AssetBundleModel
             foreach (var assetName in assets)
             {
                 AssetType tempType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
-                switch (tempType)
+                if (tempType == AssetType.SceneAsset)
                 {
-                    case AssetType.SceneAsset:
-                        {
-                            m_AssetType = tempType;
-                            //m_IsSceneBundle = true;
-                            if (assetInBundle)
-                                sceneError = true;
-                        }
-                        break;
-                    default:
-                        {
-                            assetInBundle = true;
-                            //if (m_IsSceneBundle)
-                            if (m_AssetType == AssetType.SceneAsset)
-                            {
-                                sceneError = true;
-                            }
-                            else
-                            {
-                                m_AssetType = tempType;
-                            }
-                        }
-                        break;
+                    m_AssetType = tempType;
+                    //m_IsSceneBundle = true;
+                    if (assetInBundle)
+                        sceneError = true;
+                }
+                else
+                {
+                    assetInBundle = true;
+                    //if (m_IsSceneBundle)
+                    if (m_AssetType == AssetType.SceneAsset)
+                    {
+                        sceneError = true;
+                    }
+                    else
+                    {
+                        m_AssetType = tempType;
+                    }
+
                 }
 
                 var bundleName = Model.GetBundleName(assetName);

@@ -243,8 +243,8 @@ namespace AssetBundleBrowser
                 if (selectedNodes[0].bundle.IsMessageSet(MessageSystem.MessageFlag.AssetsDuplicatedInMultBundles))
                     menu.AddItem(new GUIContent("Move duplicates to new bundle"), false, DedupeAllBundles, selectedNodes);
                 menu.AddItem(new GUIContent("Rename"), false, RenameBundle, selectedNodes);
-                menu.AddItem(new GUIContent("Delete " + selectedNodes[0].displayName), false, DeleteBundles, selectedNodes);
-
+                menu.AddItem(new GUIContent(string.Format("Delete '{0}'", selectedNodes[0].displayName)), false, DeleteBundles, selectedNodes);
+                menu.AddItem(new GUIContent(string.Format("Force Delete '{0}'", selectedNodes[0].displayName)), false, ForceDeleteBundles, selectedNodes);
             }
             else if (selectedNodes.Count > 1)
             {
@@ -434,9 +434,19 @@ namespace AssetBundleBrowser
             var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
             AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
             ReloadAndSelect(new List<int>());
-
-
         }
+        void ForceDeleteBundles(object b)
+        {
+            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
+            foreach (var item in selectedNodes)
+            {
+                AssetDatabase.RemoveAssetBundleName(item.bundle.m_Name.bundleName, true);
+            }
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
+            ReloadAndSelect(new List<int>());
+        }
+        
         protected override void KeyEvent()
         {
             if (Event.current.keyCode == KeyCode.Delete && GetSelection().Count > 0)
