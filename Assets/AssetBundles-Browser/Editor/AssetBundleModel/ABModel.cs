@@ -90,7 +90,8 @@ namespace AssetBundleBrowser.AssetBundleModel
                 if (s_BundlesToUpdate.Count == 0)
                 {
                     shouldRepaint = true;
-                    foreach (var bundle in s_RootLevelBundles.GetChildList())
+                    var tempChildList = s_RootLevelBundles.GetChildList();
+                    foreach (var bundle in tempChildList)
                     {
                         bundle.RefreshDupeAssetWarning();
                     }

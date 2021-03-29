@@ -202,7 +202,7 @@ namespace AssetBundleBrowser
 
         public void SetSelection(List<string> paths)
         {
-            List<int> selected = new List<int>();
+            List<int> selected = new List<int>(paths.Count);
             AddIfInPaths(paths, selected, rootItem);
             SetSelection(selected);
         }
