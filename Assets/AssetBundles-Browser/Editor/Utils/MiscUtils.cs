@@ -10,7 +10,7 @@ namespace AssetBundleBrowser
     {
         #region [Fields]
         private static HashSet<string> ValidateExtension = new HashSet<string> { ".dll", ".cs", ".meta", ".js", ".boo" };
-        private static HashSet<string> AtomAssetExtension = new HashSet<string> { ".png", "jpg", ".psd", ".tga" };
+        private static HashSet<string> AtomAssetExtension = new HashSet<string> { ".png", "jpg", ".psd", ".tga", ".txt", ".bytes", "byte" };
         #endregion
 
         #region [API]
@@ -82,7 +82,7 @@ namespace AssetBundleBrowser
         public static bool IsAtomAsset(string pathName)
         {
             if (!pathName.StartsWith("Assets/")) return false;
-
+            
             var tempExt = Path.GetExtension(pathName).ToLower();
             return AtomAssetExtension.Contains(tempExt);
         }
