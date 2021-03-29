@@ -10,7 +10,7 @@ namespace AssetBundleBrowser
     {
         #region [Fields]
         private static HashSet<string> ValidateExtension = new HashSet<string> { ".dll", ".cs", ".meta", ".js", ".boo" };
-        private static HashSet<string> AtomAssetExtension = new HashSet<string> { ".anim", ".png", "jpg", ".psd" };
+        private static HashSet<string> AtomAssetExtension = new HashSet<string> { ".png", "jpg", ".psd", ".tga" };
         #endregion
 
         #region [API]
