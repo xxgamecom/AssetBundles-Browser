@@ -72,16 +72,17 @@ namespace AssetBundleBrowser.AdvAssetBundle
         [MenuItem("Test/ss")]
         public static void TestMenu()
         {
+            //var buildManifest = BuildPipeline.BuildAssetBundles("AssetBundles/Android", BuildAssetBundleOptions.None, BuildTarget.Android);
+
             var tempVal = SubscriptionABSplitAttribute.ABSplitInfo();
             Debug.LogError(tempVal.Count);
 
             var tempSet = new HashSet<AssetDsc>(tempVal);
             Debug.LogError(tempSet.Count);
 
-            var _AssetBeDep = new Dictionary<string, List<string>>();
-            Debug.LogError(_AssetBeDep["s"] == null);
-            _AssetBeDep["s"] = new List<string>();
-            _AssetBeDep["s"].Add("ss");
+            var tempS = new AssetDsc("s","");
+            var tempS2 = new AssetDsc("s");
+            Debug.LogError(tempS == tempS2);
 
         }
     }

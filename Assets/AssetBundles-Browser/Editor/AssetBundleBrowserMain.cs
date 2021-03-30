@@ -1,15 +1,14 @@
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Reflection;
+using System.Collections.Generic;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Unity.AssetBundleBrowser.Editor.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.AssetBundleBrowser.Editor.Tests")]
 
 namespace AssetBundleBrowser
 {
-
     public class AssetBundleBrowserMain : EditorWindow, IHasCustomMenu, ISerializationCallbackReceiver
     {
-
         private static AssetBundleBrowserMain s_instance = null;
         internal static AssetBundleBrowserMain instance
         {
@@ -57,33 +56,21 @@ namespace AssetBundleBrowser
             instance.Show();
         }
 
-        [MenuItem("Test/Ts")]
-        public static void TestBtn()
-        {
-            var tempABs = AssetDatabase.GetAllAssetBundleNames();
-            foreach (var item in tempABs)
-            {
-                Debug.LogError(string.Join("|", AssetDatabase.GetDependencies(AssetDatabase.GetAssetPathsFromAssetBundle(item), false)));
-            }
-            
-        }
-
         [SerializeField]
         internal bool multiDataSource = false;
         List<AssetBundleDataSource.ABDataSource> m_DataSourceList = null;
+
+        #region [IHasCustomMenu]
         public virtual void AddItemsToMenu(GenericMenu menu)
         {
-            if (menu != null)
-                menu.AddItem(new GUIContent("Custom Sources"), multiDataSource, FlipDataSource);
+            if (menu == null) return;
+            menu.AddItem(new GUIContent("Custom Sources"), multiDataSource, FlipDataSource);
         }
-        internal void FlipDataSource()
-        {
-            multiDataSource = !multiDataSource;
-        }
+        internal void FlipDataSource() { multiDataSource = !multiDataSource; }
+        #endregion
 
         private void OnEnable()
         {
-
             Rect subPos = GetSubWindowArea();
             if (m_ManageTab == null)
                 m_ManageTab = new AssetBundleManageTab();
@@ -95,7 +82,8 @@ namespace AssetBundleBrowser
                 m_InspectTab = new AssetBundleInspectTab();
             m_InspectTab.OnEnable(subPos);
 
-            m_RefreshTexture = EditorGUIUtility.FindTexture("Refresh");
+            if (m_RefreshTexture == null)
+                m_RefreshTexture = EditorGUIUtility.FindTexture("Refresh");
 
             InitDataSources();
         }
@@ -104,9 +92,10 @@ namespace AssetBundleBrowser
             //determine if we are "multi source" or not...
             multiDataSource = false;
             m_DataSourceList = new List<AssetBundleDataSource.ABDataSource>();
-            foreach (var info in AssetBundleDataSource.ABDataSourceProviderUtility.CustomABDataSourceTypes)
+            var tempSourceTypes = AssetBundleDataSource.ABDataSourceProviderUtility.CustomABDataSourceTypes;
+            foreach (var info in tempSourceTypes)
             {
-                m_DataSourceList.AddRange(info.GetMethod("CreateDataSources").Invoke(null, null) as List<AssetBundleDataSource.ABDataSource>);
+                m_DataSourceList.AddRange(info.GetMethod("CreateDataSources", BindingFlags.Public | BindingFlags.Static).Invoke(null, null) as List<AssetBundleDataSource.ABDataSource>);
             }
 
             if (m_DataSourceList.Count > 1)
@@ -125,12 +114,10 @@ namespace AssetBundleBrowser
                 m_InspectTab.OnDisable();
         }
 
-        public void OnBeforeSerialize()
-        {
-        }
-        public void OnAfterDeserialize()
-        {
-        }
+        #region [ISerializationCallbackReceiver]
+        public void OnBeforeSerialize() { }
+        public void OnAfterDeserialize() { }
+        #endregion
 
         private Rect GetSubWindowArea()
         {
@@ -143,17 +130,8 @@ namespace AssetBundleBrowser
 
         private void Update()
         {
-            switch (m_Mode)
-            {
-                case Mode.Builder:
-                    break;
-                case Mode.Inspect:
-                    break;
-                case Mode.Browser:
-                default:
-                    m_ManageTab.Update();
-                    break;
-            }
+            if (m_Mode == Mode.Builder || m_Mode == Mode.Inspect) return;
+            m_ManageTab.Update();
         }
 
         private void OnGUI()
@@ -175,6 +153,7 @@ namespace AssetBundleBrowser
             }
         }
 
+        private string[] _Tooglelabels = new string[3] { "Configure", "Build", "Inspect" };
         void ModeToggle()
         {
             GUILayout.BeginHorizontal();
@@ -198,9 +177,7 @@ namespace AssetBundleBrowser
             }
 
             float toolbarWidth = position.width - k_ToolbarPadding * 4 - m_RefreshTexture.width;
-            //string[] labels = new string[2] { "Configure", "Build"};
-            string[] labels = new string[3] { "Configure", "Build", "Inspect" };
-            m_Mode = (Mode)GUILayout.Toolbar((int)m_Mode, labels, "LargeButton", GUILayout.Width(toolbarWidth));
+            m_Mode = (Mode)GUILayout.Toolbar((int)m_Mode, _Tooglelabels, "LargeButton", GUILayout.Width(toolbarWidth));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             if (multiDataSource)
@@ -256,7 +233,5 @@ namespace AssetBundleBrowser
                 //GUILayout.EndArea();
             }
         }
-
-
     }
 }

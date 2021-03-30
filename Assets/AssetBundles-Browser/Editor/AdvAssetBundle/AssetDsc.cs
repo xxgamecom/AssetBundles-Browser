@@ -32,7 +32,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
         {
             if (lhs is null) return rhs is null;
             if (rhs is null) return false;
-            return lhs.AssetsGUID == rhs.AssetsGUID;
+            return lhs.AssetsGUID == rhs.AssetsGUID && lhs.AssetBundleName == rhs.AssetBundleName;
         }
         #endregion
     }
