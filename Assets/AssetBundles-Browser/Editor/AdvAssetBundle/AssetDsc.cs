@@ -11,7 +11,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
 
         #region [Construct]
         public AssetDsc(string varGUID) { AssetsGUID = varGUID; }
-        public AssetDsc(string varGUID, string varAssetBundleName) { AssetsGUID = varGUID; AssetBundleName = varAssetBundleName; }
+        public AssetDsc(string varGUID, string varAssetBundleName) { AssetsGUID = varGUID; AssetBundleName = varAssetBundleName.ToLower(); }
         #endregion
 
         #region [API]
