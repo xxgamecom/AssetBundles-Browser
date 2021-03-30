@@ -274,13 +274,10 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 if (!MiscUtils.IsAtomAsset(m_AssetName))
                 {
-                    var tempDeps = AssetDatabase.GetDependencies(m_AssetName, true);
-                    //TOD - for collection .ext debug.
-                    //if (tempDeps.Length == 1 && tempDeps[0] == m_AssetName)
-                    //{
-                    //    Debug.LogWarningFormat("AtomAssetExtension maybe need upgrade.[{0}]", m_AssetName);
-                    //}
-                    m_dependencies.Capacity = tempDeps.Length - 1;
+                    //TODO - 是否需要递归？从简单测试的情况来看是不需要的;
+                    //var tempDeps = AssetDatabase.GetDependencies(m_AssetName, true);
+                    var tempDeps = AssetDatabase.GetDependencies(m_AssetName, false);
+                    m_dependencies.Capacity = tempDeps.Length > 1 ? tempDeps.Length - 1 : m_dependencies.Capacity;
                     foreach (var dep in tempDeps)
                     {
                         if (dep == m_AssetName) continue;

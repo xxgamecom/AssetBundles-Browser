@@ -63,3 +63,6 @@ build/**
 Documentation/ApiDocs/**
 .DS_Store
 .npmrc
+
+/AssetBundles/
+/AssetBundles_data/

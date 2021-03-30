@@ -72,17 +72,38 @@ namespace AssetBundleBrowser.AdvAssetBundle
         [MenuItem("Test/ss")]
         public static void TestMenu()
         {
-            //var buildManifest = BuildPipeline.BuildAssetBundles("AssetBundles/Android", BuildAssetBundleOptions.None, BuildTarget.Android);
+            {
+                var tempAB = AssetDatabase.GetAllAssetBundleNames();
+                var tempBuilList = new List<AssetBundleBuild>();
+                foreach (var item in tempAB)
+                {
+                    var tempS = AssetDatabase.GetAssetPathsFromAssetBundle(item);
 
-            var tempVal = SubscriptionABSplitAttribute.ABSplitInfo();
-            Debug.LogError(tempVal.Count);
+                    var tempBuild = new AssetBundleBuild();
+                    tempBuild.assetBundleName = item;
+                    tempBuild.assetNames = tempS;
+                    Debug.LogError($"[{item}] {string.Join(";", tempS)}");
+                    tempBuilList.Add(tempBuild);
+                }
+                var tempManifest = BuildPipeline.BuildAssetBundles("AssetBundles/Android_1", tempBuilList.ToArray(), BuildAssetBundleOptions.None, BuildTarget.Android);
+            }
+            
+            {
+                var buildManifest = BuildPipeline.BuildAssetBundles("AssetBundles/Android", BuildAssetBundleOptions.None, BuildTarget.Android);
+            }
+            
+            {
+                var tempVal = SubscriptionABSplitAttribute.ABSplitInfo();
+                Debug.LogError(tempVal.Count);
 
-            var tempSet = new HashSet<AssetDsc>(tempVal);
-            Debug.LogError(tempSet.Count);
+                var tempSet = new HashSet<AssetDsc>(tempVal);
+                Debug.LogError(tempSet.Count);
 
-            var tempS = new AssetDsc("s","");
-            var tempS2 = new AssetDsc("s");
-            Debug.LogError(tempS == tempS2);
+                var tempS = new AssetDsc("s", "");
+                var tempS2 = new AssetDsc("s");
+                Debug.LogError(tempS == tempS2);
+            }
+            
 
         }
     }
