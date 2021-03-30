@@ -106,8 +106,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
             foreach (var tempABName in varAssetBundles)
             {
                 var tempAssets = varQuerier.GetAssetPathsFromAssetBundle(tempABName);
-                //var tempAssetsDeps = varQuerier.GetDependencies(tempAssets, true);
-                var tempAssetsDeps = varQuerier.GetDependencies(tempAssets, false);//不设置隐式依赖资源的包名;
+                var tempAssetsDeps = varQuerier.GetDependencies(tempAssets, true);
                 for (int iD = 0; iD < tempAssetsDeps.Length; ++iD)
                 {
                     var tempDepPath = tempAssetsDeps[iD];
