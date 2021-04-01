@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Text;
+using UnityEditor;
+using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.Text;
+
 using UDebug = UnityEngine.Debug;
 
 namespace AssetBundleBrowser.AdvAssetBundle
@@ -11,10 +14,16 @@ namespace AssetBundleBrowser.AdvAssetBundle
         #region [Fields]
         private const string AutoGenABFormat = "autogen/{0}";
         private static IAssetDataQuerier DefalutQuerier = new AssetDatabaseQuerier();
+        private static readonly List<string> _EmptyList = new List<string>();
         #endregion
 
         #region [API]
         public static void Optimize(ref string[] varAssetBundles) => Optimize(DefalutQuerier, ref varAssetBundles);
+        public static void Optimize(ref AssetBundleBuild[] varABBuild)
+        {
+            var tempAssetBundles = varABBuild.Select(b => b.assetBundleName).ToArray();
+            Optimize(new AssetBundleBuildQuerier(varABBuild, varABBuild.Length), ref tempAssetBundles);
+        }
         public static void Optimize(IAssetDataQuerier varQuerier, ref string[] varAssetBundles)
         {
             using (new UDebugTimeTick("Sort all AssetBundle Names"))
@@ -124,7 +133,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
                     tempRecordABBeDep(tempABDep, tempABName);
                 }
 
-                varABDepABs.Add(tempABName, new List<string>(tempABDeps));
+                varABDepABs.Add(tempABName, tempABDeps.Length == 0 ? _EmptyList : new List<string>(tempABDeps));
             }
         }
         private static void CurtailABDepend(Dictionary<string, List<string>> varAssetBeDep, Dictionary<string, List<string>> varABBeDep)

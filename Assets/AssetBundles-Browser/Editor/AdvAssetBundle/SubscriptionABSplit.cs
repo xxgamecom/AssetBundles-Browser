@@ -69,7 +69,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
             return temPS;
         }
 
-        [MenuItem("Test/ss")]
+        [MenuItem("Test/issueTest")]
         public static void TestMenu()
         {
             {
@@ -105,6 +105,20 @@ namespace AssetBundleBrowser.AdvAssetBundle
             }
             
 
+        }
+
+        [MenuItem("Test/TestABBuild")]
+        public static void TestABBuild()
+        {
+            var tempABs = AssetDatabase.GetAllAssetBundleNames();
+            var tempList = new List<AssetBundleBuild>(tempABs.Length);
+            foreach (var item in tempABs)
+            {
+                var tempAsts = AssetDatabase.GetAssetPathsFromAssetBundle(item);
+                tempList.Add(new AssetBundleBuild { assetNames = tempAsts, assetBundleName = item });
+            }
+            var tempBuilds = tempList.ToArray();
+            RedundanciesOp.Optimize(ref tempBuilds);
         }
     }
 }
