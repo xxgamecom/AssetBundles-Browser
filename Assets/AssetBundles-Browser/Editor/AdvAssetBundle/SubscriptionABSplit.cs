@@ -115,7 +115,10 @@ namespace AssetBundleBrowser.AdvAssetBundle
             foreach (var item in tempABs)
             {
                 var tempAsts = AssetDatabase.GetAssetPathsFromAssetBundle(item);
-                tempList.Add(new AssetBundleBuild { assetNames = tempAsts, assetBundleName = item });
+                //tempList.Add(new AssetBundleBuild { assetNames = tempAsts, assetBundleName = item });
+
+                var tempAstsDeps = AssetDatabase.GetDependencies(tempAsts, true);
+                tempList.Add(new AssetBundleBuild { assetNames = tempAstsDeps, assetBundleName = item });
             }
             var tempBuilds = tempList.ToArray();
             RedundanciesOp.Optimize(ref tempBuilds);
