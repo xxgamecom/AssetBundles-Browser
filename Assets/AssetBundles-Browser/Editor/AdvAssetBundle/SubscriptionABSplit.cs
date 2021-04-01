@@ -87,11 +87,11 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 }
                 var tempManifest = BuildPipeline.BuildAssetBundles("AssetBundles/Android_1", tempBuilList.ToArray(), BuildAssetBundleOptions.None, BuildTarget.Android);
             }
-            
+
             {
                 var buildManifest = BuildPipeline.BuildAssetBundles("AssetBundles/Android", BuildAssetBundleOptions.None, BuildTarget.Android);
             }
-            
+
             {
                 var tempVal = SubscriptionABSplitAttribute.ABSplitInfo();
                 Debug.LogError(tempVal.Count);
@@ -103,7 +103,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 var tempS2 = new AssetDsc("s");
                 Debug.LogError(tempS == tempS2);
             }
-            
+
 
         }
 
@@ -121,6 +121,8 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 tempList.Add(new AssetBundleBuild { assetNames = tempAstsDeps, assetBundleName = item });
             }
             var tempBuilds = tempList.ToArray();
+            Debug.LogError(EditorJsonUtility.ToJson(tempBuilds));
+            Debug.LogError(EditorJsonUtility.ToJson(tempBuilds[0]));
             RedundanciesOp.Optimize(ref tempBuilds);
         }
     }
