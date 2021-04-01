@@ -125,6 +125,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         {
             m_ShortName = inputName;
             int indexOfDot = m_ShortName.LastIndexOf('.');
+            indexOfDot = -1;
             if (indexOfDot > -1)
             {
                 m_VariantName = m_ShortName.Substring(indexOfDot + 1);
@@ -617,7 +618,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
         {
             RefreshAssetList();
-            string newName = System.String.IsNullOrEmpty(parentName) ? "" : parentName + '/';
+            string newName = string.IsNullOrEmpty(parentName) ? "" : parentName + '/';
             newName += m_Name.shortName;
             if (newName == m_Name.bundleName)
                 return;
