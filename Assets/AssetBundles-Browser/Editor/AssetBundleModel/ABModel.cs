@@ -2,9 +2,9 @@
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 using UnityEngine.Assertions;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.IMGUI.Controls;
 
 using AssetBundleBrowser.AssetBundleDataSource;
@@ -733,7 +733,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         {
             if (s_DependencyTracker.ContainsKey(asset.fullAssetName))
             {
-                return s_DependencyTracker[asset.fullAssetName];
+                return s_DependencyTracker[asset.fullAssetName].OrderBy(s => s);
             }
             return new HashSet<string>();
         }
