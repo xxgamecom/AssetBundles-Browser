@@ -13,18 +13,20 @@ namespace AssetBundleBrowser.AdvAssetBundle
     {
         #region [Fields]
         private const string AutoGenABFormat = "autogen/{0}";
-        private static IAssetDataQuerier DefalutQuerier = new AssetDatabaseQuerier();
+        private static IAssetDataQuerier _DefalutQuerier = new AssetDatabaseQuerier();
         private static readonly List<string> _EmptyList = new List<string>();
         #endregion
 
         #region [API]
-        public static void Optimize(ref string[] varAssetBundles) => Optimize(DefalutQuerier, ref varAssetBundles);
-        public static void Optimize(ref AssetBundleBuild[] varABBuild)
+        public static IAssetDataQuerier Optimize(ref string[] varAssetBundles) => Optimize(_DefalutQuerier, ref varAssetBundles);
+        public static IAssetDataQuerier Optimize(ref AssetBundleBuild[] varABBuild)
         {
             var tempAssetBundles = varABBuild.Select(b => b.assetBundleName).ToArray();
-            Optimize(new AssetBundleBuildQuerier(varABBuild, varABBuild.Length), ref tempAssetBundles);
+            var tempABBuildQuerier = new AssetBundleBuildQuerier(varABBuild, varABBuild.Length);
+            Optimize(tempABBuildQuerier, ref tempAssetBundles);
+            return tempABBuildQuerier;
         }
-        public static void Optimize(IAssetDataQuerier varQuerier, ref string[] varAssetBundles)
+        public static IAssetDataQuerier Optimize(IAssetDataQuerier varQuerier, ref string[] varAssetBundles)
         {
             using (new UDebugTimeTick("Sort all AssetBundle Names"))
             {
@@ -83,6 +85,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 PushSameAssetToABUnit(varQuerier, tempRepeatAssets, tempAssetBeDeps);
             }
 
+            return varQuerier;
         }
         #endregion
 
