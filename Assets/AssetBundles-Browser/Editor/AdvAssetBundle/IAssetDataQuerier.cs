@@ -1,4 +1,5 @@
-﻿
+﻿using UnityEditor;
+
 namespace AssetBundleBrowser.AdvAssetBundle
 {
     public interface IAssetDataQuerier
@@ -36,5 +37,6 @@ namespace AssetBundleBrowser.AdvAssetBundle
         /// <param name="recursive">If false, returns only AssetBundles which are direct dependencies of the input; if true, includes all indirect dependencies of the input.</param>
         /// <returns>The names of all AssetBundles that the input depends on.</returns>
         string[] GetAssetBundleDependencies(string assetBundleName, bool recursive);
+        AssetBundleBuild[] OptimizedAssetBundleInfo();
     }
 }

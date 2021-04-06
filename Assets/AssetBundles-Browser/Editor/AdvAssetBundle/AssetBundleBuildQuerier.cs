@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEditor;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace AssetBundleBrowser.AdvAssetBundle
@@ -7,14 +8,17 @@ namespace AssetBundleBrowser.AdvAssetBundle
     public sealed class AssetBundleBuildQuerier : IAssetDataQuerier
     {
         #region [Fields]
+        private string[] _EmptyStrArray = new string[] { };
         //Key = ABName;
         private Dictionary<string, AssetBundleBuild> _BuildABMap;
-        private string[] _EmptyStrArray = new string[] { };
+        //key = assetPath,Val = ABName;
+        private Dictionary<string, string> _AssetABName;
         #endregion
 
         #region [Construct]
         public AssetBundleBuildQuerier(IEnumerable<AssetBundleBuild> varABBuild, int varCount)
         {
+            _AssetABName = new Dictionary<string, string>();
             _BuildABMap = new Dictionary<string, AssetBundleBuild>(varCount);
             foreach (var item in varABBuild)
             {
@@ -76,7 +80,51 @@ namespace AssetBundleBrowser.AdvAssetBundle
             => AssetDatabase.GetDependencies(pathNames, recursive);
 
         public void SetAssetBundleName(string path, string assetBundleName)
-            => AssetImporter.GetAtPath(path).SetAssetBundleNameAndVariant(assetBundleName, string.Empty);
+        {
+            if (_AssetABName.ContainsKey(path))
+            {
+                _AssetABName[path] = assetBundleName;
+            }
+            else
+            {
+                _AssetABName.Add(path, assetBundleName);
+            }
+        }
+
+        public AssetBundleBuild[] OptimizedAssetBundleInfo()
+        {
+            var tempABAsts = new Dictionary<string, HashSet<string>>();
+            foreach (var tempKvp in _AssetABName)
+            {
+                if (tempABAsts.TryGetValue(tempKvp.Value, out var tempVal))
+                {
+                    tempVal.Add(tempKvp.Key);
+                }
+                else
+                {
+                    tempABAsts.Add(tempKvp.Value, new HashSet<string>() { tempKvp.Key });
+                }
+            }
+
+            var tempABInfos = new List<AssetBundleBuild>();
+            foreach (var tempKvp in _BuildABMap)
+            {
+                var tempBuild = tempKvp.Value;
+                if (tempABAsts.TryGetValue(tempKvp.Key, out var tempVal))
+                {
+                    var tempAstPaths = new HashSet<string>(tempBuild.assetNames);
+                    foreach (var item in tempVal)
+                    {
+                        tempAstPaths.Add(item);
+                    }
+                    tempBuild.assetNames = tempAstPaths.OrderBy(a => a).ToArray();
+                }
+
+                tempABInfos.Add(tempBuild);
+            }
+
+            return tempABInfos.OrderBy(b => b.assetBundleName).ToArray();
+        }
         #endregion
     }
 }
