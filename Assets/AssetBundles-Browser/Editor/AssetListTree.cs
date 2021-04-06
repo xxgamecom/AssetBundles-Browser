@@ -372,7 +372,7 @@ namespace AssetBundleBrowser
                 foreach (var item in tempChild)
                 {
                     var tempATI = item as AssetBundleModel.AssetTreeItem;
-                    if (!string.IsNullOrEmpty(tempATI.asset.bundleName) && tempATI.asset.bundleName != "auto")
+                    if (!string.IsNullOrEmpty(tempATI.asset.bundleName) && tempATI.asset.bundleName != AssetBundleModel.AssetInfo.AutoEmptyTag)
                     {
                         if (!tempDic.ContainsKey(tempATI.asset.bundleName))
                             tempDic.Add(tempATI.asset.bundleName, 1);

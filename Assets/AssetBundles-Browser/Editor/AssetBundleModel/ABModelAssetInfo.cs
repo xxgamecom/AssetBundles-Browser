@@ -2,8 +2,8 @@
 using System.IO;
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 
 using URandom = UnityEngine.Random;
@@ -74,13 +74,15 @@ namespace AssetBundleBrowser.AssetBundleModel
 
     internal class AssetInfo
     {
+        public const string AutoEmptyTag = "auto";
+
         internal bool isScene { get; set; }
         internal bool isFolder { get; set; }
 
         private long _fileSize = -1;
         internal long fileSize
         {
-            get 
+            get
             {
                 if (_fileSize == -1)
                 {
@@ -149,7 +151,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             get { return m_DisplayName; }
         }
         internal string bundleName
-        { get { return string.IsNullOrEmpty(m_BundleName) ? "auto" : m_BundleName; } }
+        { get { return string.IsNullOrEmpty(m_BundleName) ? AutoEmptyTag : m_BundleName; } }
 
         internal Color GetColor()
         {
@@ -192,12 +194,8 @@ namespace AssetBundleBrowser.AssetBundleModel
             if (IsMessageSet(MessageSystem.MessageFlag.AssetsDuplicatedInMultBundles))
             {
                 var bundleNames = Model.CheckDependencyTracker(this);
-                string message = displayName + "\n" + "Is auto-included in multiple bundles:\n";
-                foreach (var bundleName in bundleNames)
-                {
-                    message += bundleName + ", ";
-                }
-                message = message.Substring(0, message.Length - 2);//remove trailing comma.
+                string message = string.Format("{0}\nIs auto-included in multiple bundles: - [{1}]\n", displayName, bundleNames.Count());
+                message += string.Join(", ", bundleNames);
                 messages.Add(new MessageSystem.Message(message, MessageType.Warning));
             }
 
@@ -205,11 +203,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 //TODO - refine the parent list to only include those in the current asset list
                 var message = displayName + "\n" + "Is auto included in bundle(s) due to parent(s): \n";
-                foreach (var parent in m_Parents)
-                {
-                    message += parent + ", ";
-                }
-                message = message.Substring(0, message.Length - 2);//remove trailing comma.
+                message += string.Join(", ", m_Parents);
                 messages.Add(new MessageSystem.Message(message, MessageType.Info));
             }
 
