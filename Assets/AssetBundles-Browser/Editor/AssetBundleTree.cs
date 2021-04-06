@@ -197,14 +197,12 @@ namespace AssetBundleBrowser
 
         protected override void ContextClickedItem(int id)
         {
-            if (AssetBundleModel.Model.DataSource.IsReadOnly())
-            {
-                return;
-            }
+            if (AssetBundleModel.Model.DataSource.IsReadOnly()) return;
 
             m_ContextOnItem = true;
-            List<AssetBundleModel.BundleTreeItem> selectedNodes = new List<AssetBundleModel.BundleTreeItem>();
-            foreach (var nodeID in GetSelection())
+            var tempSelection = GetSelection();
+            var selectedNodes = new List<AssetBundleModel.BundleTreeItem>(tempSelection.Count);
+            foreach (var nodeID in tempSelection)
             {
                 selectedNodes.Add(FindItem(nodeID, rootItem) as AssetBundleModel.BundleTreeItem);
             }
@@ -213,14 +211,15 @@ namespace AssetBundleBrowser
 
             if (selectedNodes.Count == 1)
             {
-                if ((selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo) != null)
+                var tempSelectFirstNode = selectedNodes[0];
+                if ((tempSelectFirstNode.bundle as AssetBundleModel.BundleFolderConcreteInfo) != null)
                 {
                     menu.AddItem(new GUIContent("Add Child/New Bundle"), false, CreateNewBundle, selectedNodes);
                     menu.AddItem(new GUIContent("Add Child/New Folder"), false, CreateFolder, selectedNodes);
                     menu.AddItem(new GUIContent("Add Sibling/New Bundle"), false, CreateNewSiblingBundle, selectedNodes);
                     menu.AddItem(new GUIContent("Add Sibling/New Folder"), false, CreateNewSiblingFolder, selectedNodes);
                 }
-                else if ((selectedNodes[0].bundle as AssetBundleModel.BundleVariantFolderInfo) != null)
+                else if ((tempSelectFirstNode.bundle as AssetBundleModel.BundleVariantFolderInfo) != null)
                 {
                     menu.AddItem(new GUIContent("Add Child/New Variant"), false, CreateNewVariant, selectedNodes);
                     menu.AddItem(new GUIContent("Add Sibling/New Bundle"), false, CreateNewSiblingBundle, selectedNodes);
@@ -228,7 +227,7 @@ namespace AssetBundleBrowser
                 }
                 else
                 {
-                    var variant = selectedNodes[0].bundle as AssetBundleModel.BundleVariantDataInfo;
+                    var variant = tempSelectFirstNode.bundle as AssetBundleModel.BundleVariantDataInfo;
                     if (variant == null)
                     {
                         menu.AddItem(new GUIContent("Add Sibling/New Bundle"), false, CreateNewSiblingBundle, selectedNodes);
@@ -240,17 +239,19 @@ namespace AssetBundleBrowser
                         menu.AddItem(new GUIContent("Add Sibling/New Variant"), false, CreateNewSiblingVariant, selectedNodes);
                     }
                 }
-                if (selectedNodes[0].bundle.IsMessageSet(MessageSystem.MessageFlag.AssetsDuplicatedInMultBundles))
+                if (tempSelectFirstNode.bundle.IsMessageSet(MessageSystem.MessageFlag.AssetsDuplicatedInMultBundles))
                     menu.AddItem(new GUIContent("Move duplicates to new bundle"), false, DedupeAllBundles, selectedNodes);
                 menu.AddItem(new GUIContent("Rename"), false, RenameBundle, selectedNodes);
-                menu.AddItem(new GUIContent(string.Format("Delete '{0}'", selectedNodes[0].displayName)), false, DeleteBundles, selectedNodes);
-                menu.AddItem(new GUIContent(string.Format("Force Delete '{0}'", selectedNodes[0].displayName)), false, ForceDeleteBundles, selectedNodes);
+
+                var tempDisplayName = tempSelectFirstNode.displayName;
+                menu.AddItem(new GUIContent(string.Format("Delete '{0}'", tempDisplayName)), false, DeleteBundles, selectedNodes);
+                menu.AddItem(new GUIContent(string.Format("Force Delete '{0}'", tempDisplayName)), false, ForceDeleteBundles, selectedNodes);
             }
             else if (selectedNodes.Count > 1)
             {
                 menu.AddItem(new GUIContent("Move duplicates shared by selected"), false, DedupeOverlappedBundles, selectedNodes);
                 menu.AddItem(new GUIContent("Move duplicates existing in any selected"), false, DedupeAllBundles, selectedNodes);
-                menu.AddItem(new GUIContent("Delete " + selectedNodes.Count + " selected bundles"), false, DeleteBundles, selectedNodes);
+                menu.AddItem(new GUIContent(string.Format("Delete {0} selected bundles", selectedNodes.Count)), false, DeleteBundles, selectedNodes);
             }
 
             menu.AddSeparator(string.Empty);
@@ -446,7 +447,7 @@ namespace AssetBundleBrowser
             AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
             ReloadAndSelect(new List<int>());
         }
-        
+
         protected override void KeyEvent()
         {
             if (Event.current.keyCode == KeyCode.Delete && GetSelection().Count > 0)

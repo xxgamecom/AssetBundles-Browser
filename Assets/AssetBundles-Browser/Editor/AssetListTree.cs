@@ -325,7 +325,8 @@ namespace AssetBundleBrowser
 
             if (data.isSceneBundle)
             {
-                foreach (var assetPath in DragAndDrop.paths)
+                var tempDragPaths = DragAndDrop.paths;
+                foreach (var assetPath in tempDragPaths)
                 {
                     if ((AssetDatabase.GetMainAssetTypeAtPath(assetPath) != typeof(SceneAsset)) &&
                         (!AssetDatabase.IsValidFolder(assetPath)))
@@ -334,7 +335,8 @@ namespace AssetBundleBrowser
             }
             else
             {
-                foreach (var assetPath in DragAndDrop.paths)
+                var tempDragPaths = DragAndDrop.paths;
+                foreach (var assetPath in tempDragPaths)
                 {
                     if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(SceneAsset))
                         return false;
@@ -352,8 +354,9 @@ namespace AssetBundleBrowser
                 return;
             }
 
-            List<AssetBundleModel.AssetTreeItem> selectedNodes = new List<AssetBundleModel.AssetTreeItem>();
-            foreach (var nodeID in GetSelection())
+            var tempSelects = GetSelection();
+            var selectedNodes = new List<AssetBundleModel.AssetTreeItem>(tempSelects.Count);
+            foreach (var nodeID in tempSelects)
             {
                 selectedNodes.Add(FindItem(nodeID, rootItem) as AssetBundleModel.AssetTreeItem);
             }
@@ -364,8 +367,9 @@ namespace AssetBundleBrowser
 
                 menu.AddItem(new GUIContent("Remove asset(s) from bundle."), false, RemoveAssets, selectedNodes);
 
-                var tempDic = new Dictionary<string, int>();
-                foreach (var item in rootItem.children)
+                var tempChild = rootItem.children;
+                var tempDic = new Dictionary<string, int>(tempChild.Count);
+                foreach (var item in tempChild)
                 {
                     var tempATI = item as AssetBundleModel.AssetTreeItem;
                     if (!string.IsNullOrEmpty(tempATI.asset.bundleName) && tempATI.asset.bundleName != "auto")
@@ -382,13 +386,13 @@ namespace AssetBundleBrowser
                 }
                 else if (tempDic.Count > 1)
                 {
-                    foreach (var item in tempDic.Keys)
+                    var tempDicKeys = tempDic.Keys;
+                    foreach (var item in tempDicKeys)
                     {
                         menu.AddItem(new GUIContent("Add asset(s) to bundle./" + item), false, AddAssets, new object[] { selectedNodes, item });
                         menu.AddItem(new GUIContent("Find References In Scene/" + item), false, FindReferencesInScene);
                     }
                 }
-
 
                 menu.ShowAsContext();
             }
@@ -397,7 +401,7 @@ namespace AssetBundleBrowser
         void RemoveAssets(object obj)
         {
             var selectedNodes = obj as List<AssetBundleModel.AssetTreeItem>;
-            var assets = new List<AssetBundleModel.AssetInfo>();
+            var assets = new List<AssetBundleModel.AssetInfo>(selectedNodes.Count);
             //var bundles = new List<AssetBundleModel.BundleInfo>();
             foreach (var node in selectedNodes)
             {
@@ -468,8 +472,9 @@ namespace AssetBundleBrowser
             SortByColumn();
 
             rows.Clear();
-            for (int i = 0; i < root.children.Count; i++)
-                rows.Add(root.children[i]);
+            var tempChild = root.children;
+            for (int i = 0; i < tempChild.Count; i++)
+                rows.Add(tempChild[i]);
 
             Repaint();
         }
@@ -504,7 +509,7 @@ namespace AssetBundleBrowser
                     {
                         var tempAstTypeStr = l.asset.assetType.ToString();
                         return tempAstTypeStr.Substring(tempAstTypeStr.LastIndexOf('.') + 1);
-                    } , ascending);
+                    }, ascending);
                 case SortOption.Size:
                     return myTypes.Order(l => l.asset.fileSize, ascending);
                 case SortOption.USize:
