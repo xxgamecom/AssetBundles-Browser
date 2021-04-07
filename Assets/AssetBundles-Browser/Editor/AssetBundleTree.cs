@@ -149,6 +149,7 @@ namespace AssetBundleBrowser
             }
 
             menu.AddSeparator(string.Empty);
+            menu.AddItem(new GUIContent("Clean all data"), false, ForceCleanData, selectedNodes);
             menu.AddItem(new GUIContent("Reload all data"), false, ForceReloadData, selectedNodes);
 
             menu.ShowAsContext();
@@ -264,6 +265,15 @@ namespace AssetBundleBrowser
         }
         void ForceReloadData(object context)
         {
+            AssetBundleModel.Model.ForceReloadData(this);
+        }
+        void ForceCleanData(object context)
+        {
+            var tempAs = AssetDatabase.GetAllAssetBundleNames();
+            foreach (var item in tempAs)
+            {
+                AssetDatabase.RemoveAssetBundleName(item, true);
+            }
             AssetBundleModel.Model.ForceReloadData(this);
         }
 
