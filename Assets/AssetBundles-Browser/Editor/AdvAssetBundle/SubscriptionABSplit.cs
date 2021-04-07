@@ -115,15 +115,13 @@ namespace AssetBundleBrowser.AdvAssetBundle
             foreach (var item in tempABs)
             {
                 var tempAsts = AssetDatabase.GetAssetPathsFromAssetBundle(item);
-                //tempList.Add(new AssetBundleBuild { assetNames = tempAsts, assetBundleName = item });
 
-                var tempAstsDeps = AssetDatabase.GetDependencies(tempAsts, true);
-                tempList.Add(new AssetBundleBuild { assetNames = tempAstsDeps, assetBundleName = item });
+                tempList.Add(new AssetBundleBuild { assetNames = tempAsts, assetBundleName = item });
+                Debug.LogWarning(string.Join(";", tempAsts));
             }
             var tempBuilds = tempList.ToArray();
-            Debug.LogError(EditorJsonUtility.ToJson(tempBuilds));
-            Debug.LogError(EditorJsonUtility.ToJson(tempBuilds[0]));
-            RedundanciesOp.Optimize(ref tempBuilds);
+            var tempInfo = RedundanciesOp.Optimize(ref tempBuilds).OptimizedAssetBundleInfo();
+            Debug.LogError(tempInfo.Length);
         }
     }
 }

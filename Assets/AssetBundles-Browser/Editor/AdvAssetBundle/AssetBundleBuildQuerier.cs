@@ -65,7 +65,16 @@ namespace AssetBundleBrowser.AdvAssetBundle
         }
 
         public string GetAssetBundleName(string path)
-            => AssetImporter.GetAtPath(path).assetBundleName;
+        {
+            foreach (var tempKvp in _BuildABMap)
+            {
+                if (tempKvp.Value.assetNames.Contains(path))
+                {
+                    return tempKvp.Key;
+                }
+            }
+            return string.Empty;
+        }
 
         public string[] GetAssetPathsFromAssetBundle(string assetBundleName)
         {
@@ -121,6 +130,11 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 }
 
                 tempABInfos.Add(tempBuild);
+            }
+
+            foreach (var tempKvp in tempABAsts)
+            {
+                tempABInfos.Add(new AssetBundleBuild() { assetBundleName = tempKvp.Key, assetNames = tempKvp.Value.OrderBy(a => a).ToArray() });
             }
 
             return tempABInfos.OrderBy(b => b.assetBundleName).ToArray();

@@ -150,9 +150,12 @@ namespace AssetBundleBrowser.AdvAssetBundle
                     continue;
                 }
 
+                if (varABBeDep.Count == 0) continue;
+
                 //间接依赖该资源的AB;
                 var tempSecondhandABs = new List<string>();
-                foreach (var tempAsserBeDepAB in tempKvp.Value)
+                var tempABs = tempKvp.Value;
+                foreach (var tempAsserBeDepAB in tempABs)
                 {
                     if (varABBeDep.TryGetValue(tempAsserBeDepAB, out var tempBeDepList))
                     {
