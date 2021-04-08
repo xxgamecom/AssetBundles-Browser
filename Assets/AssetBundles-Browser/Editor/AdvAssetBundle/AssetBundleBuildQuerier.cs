@@ -102,6 +102,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
 
         public AssetBundleBuild[] OptimizedAssetBundleInfo()
         {
+            //K = ABName,V = AssetPaths;
             var tempABAsts = new Dictionary<string, HashSet<string>>();
             foreach (var tempKvp in _AssetABName)
             {
@@ -113,6 +114,34 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 {
                     tempABAsts.Add(tempKvp.Value, new HashSet<string>() { tempKvp.Key });
                 }
+            }
+            var tempValidBuilds = new Dictionary<string, AssetBundleBuild>();
+            foreach (var tempKvp in _BuildABMap)
+            {
+                var tempBuild = tempKvp.Value;
+                var tempAssets = tempBuild.assetNames;
+                bool tempValid = true;
+                var tempInvalid = new HashSet<string>();
+                foreach (var item in tempAssets)
+                {
+                    if (!_AssetABName.ContainsKey(item)) continue;
+                    tempInvalid.Add(item);
+                    tempValid = false;
+                }
+                if (!tempValid)
+                {
+                    var tempList = new HashSet<string>(tempAssets);
+                    foreach (var item in tempInvalid)
+                    {
+                        tempList.Remove(item);
+                    }
+                    tempBuild.assetNames = tempList.ToArray();
+                    tempValidBuilds.Add(tempKvp.Key, tempBuild);
+                }
+            }
+            foreach (var tempKvp in tempValidBuilds)
+            {
+                _BuildABMap[tempKvp.Key] = tempKvp.Value;
             }
 
             var tempABInfos = new List<AssetBundleBuild>();
