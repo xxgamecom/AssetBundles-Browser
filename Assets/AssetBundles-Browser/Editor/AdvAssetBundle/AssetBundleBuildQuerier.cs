@@ -156,6 +156,8 @@ namespace AssetBundleBrowser.AdvAssetBundle
                         tempAstPaths.Add(item);
                     }
                     tempBuild.assetNames = tempAstPaths.OrderBy(a => a).ToArray();
+
+                    tempABAsts.Remove(tempKvp.Key);
                 }
 
                 tempABInfos.Add(tempBuild);
