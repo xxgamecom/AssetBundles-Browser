@@ -1,43 +1,109 @@
-﻿using UnityEditor;
+﻿using System;
+using System.IO;
+using UnityEditor;
 using UnityEngine;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
-using System.Linq;
-using System;
-using System.IO;
 using AssetBundleBrowser.AdvAssetBundle;
+
+using UObject = UnityEngine.Object;
 
 namespace AssetBundleBrowser
 {
-    internal class AssetBundleTree : TreeView
+    internal sealed class AssetBundleTree : TreeView
     {
-        AssetBundleManageTab m_Controller;
-        private bool m_ContextOnItem = false;
-        List<UnityEngine.Object> m_EmptyObjectList = new List<UnityEngine.Object>();
+        #region [InterClass]
+        private class DragAndDropData
+        {
+            #region [Fields]
+            internal bool hasBundleFolder = false;
+            internal bool hasScene = false;
+            internal bool hasNonScene = false;
+            internal bool hasVariantChild = false;
+            internal List<AssetBundleModel.BundleInfo> draggedNodes;
+            internal AssetBundleModel.BundleTreeItem targetNode;
+            internal DragAndDropArgs args;
+            internal string[] paths;
+            #endregion
 
+            internal DragAndDropData(DragAndDropArgs a)
+            {
+                args = a;
+                draggedNodes = DragAndDrop.GetGenericData("AssetBundleModel.BundleInfo") as List<AssetBundleModel.BundleInfo>;
+                targetNode = args.parentItem as AssetBundleModel.BundleTreeItem;
+                paths = DragAndDrop.paths;
+
+                if (draggedNodes != null)
+                {
+                    foreach (var bundle in draggedNodes)
+                    {
+                        if ((bundle as AssetBundleModel.BundleFolderInfo) != null)
+                        {
+                            hasBundleFolder = true;
+                        }
+                        else
+                        {
+                            var dataBundle = bundle as AssetBundleModel.BundleDataInfo;
+                            if (dataBundle != null)
+                            {
+                                if (dataBundle.isSceneBundle)
+                                    hasScene = true;
+                                else
+                                    hasNonScene = true;
+
+                                if ((dataBundle as AssetBundleModel.BundleVariantDataInfo) != null)
+                                    hasVariantChild = true;
+                            }
+                        }
+                    }
+                }
+                else if (paths != null)
+                {
+                    foreach (var assetPath in paths)
+                    {
+                        if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(SceneAsset))
+                            hasScene = true;
+                        else
+                            hasNonScene = true;
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region [Fields]
+        private bool m_ContextOnItem = false;
+        private AssetBundleManageTab m_Controller;
+        private List<UObject> m_EmptyObjectList = new List<UObject>();
+
+        private string[] dragToNewSpacePaths = null;
+        private AssetBundleModel.BundleFolderInfo dragToNewSpaceRoot = null;
+        #endregion
+
+        #region [Construct]
         internal AssetBundleTree(TreeViewState state, AssetBundleManageTab ctrl) : base(state)
         {
             AssetBundleModel.Model.Rebuild();
             m_Controller = ctrl;
             showBorder = true;
         }
+        #endregion
 
+        #region [TreeView]
         protected override bool CanMultiSelect(TreeViewItem item)
         {
             return true;
         }
-
         protected override bool CanRename(TreeViewItem item)
         {
             return item != null && item.displayName.Length > 0;
         }
-
         protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
         {
             var bundleItem = item as AssetBundleModel.BundleTreeItem;
             return bundleItem.bundle.DoesItemMatchSearch(search);
         }
-
         protected override void RowGUI(RowGUIArgs args)
         {
             var bundleItem = (args.item as AssetBundleModel.BundleTreeItem);
@@ -61,7 +127,6 @@ namespace AssetBundleBrowser
                 GUI.Label(messageRect, new GUIContent(message.icon, message.message));
             }
         }
-
         protected override void RenameEnded(RenameEndedArgs args)
         {
             base.RenameEnded(args);
@@ -79,34 +144,34 @@ namespace AssetBundleBrowser
                 args.acceptedRename = false;
             }
         }
-
         protected override TreeViewItem BuildRoot()
         {
             AssetBundleModel.Model.Refresh();
             var root = AssetBundleModel.Model.CreateBundleTreeView();
             return root;
         }
-
+        private static List<AssetBundleModel.BundleInfo> _SelectedBundles = new List<AssetBundleModel.BundleInfo>();
         protected override void SelectionChanged(IList<int> selectedIds)
         {
-
-            var selectedBundles = new List<AssetBundleModel.BundleInfo>();
+            _SelectedBundles.Clear();
             if (selectedIds != null)
             {
+                var tempSelectCount = selectedIds.Count();
+                if (_SelectedBundles.Capacity < tempSelectCount) _SelectedBundles.Capacity = tempSelectCount;
+
+                var tempRootItem = rootItem;
                 foreach (var id in selectedIds)
                 {
-                    var item = FindItem(id, rootItem) as AssetBundleModel.BundleTreeItem;
-                    if (item != null && item.bundle != null)
-                    {
-                        item.bundle.RefreshAssetList();
-                        selectedBundles.Add(item.bundle);
-                    }
+                    var item = FindItem(id, tempRootItem) as AssetBundleModel.BundleTreeItem;
+                    if (item == null || item.bundle == null) continue;
+
+                    //item.bundle.RefreshAssetList();
+                    _SelectedBundles.Add(item.bundle);
                 }
             }
 
-            m_Controller.UpdateSelectedBundles(selectedBundles);
+            m_Controller.UpdateSelectedBundles(_SelectedBundles);
         }
-
         public override void OnGUI(Rect rect)
         {
             base.OnGUI(rect);
@@ -116,7 +181,6 @@ namespace AssetBundleBrowser
             }
         }
 
-
         protected override void ContextClicked()
         {
             if (m_ContextOnItem)
@@ -125,8 +189,8 @@ namespace AssetBundleBrowser
                 return;
             }
 
-            List<AssetBundleModel.BundleTreeItem> selectedNodes = new List<AssetBundleModel.BundleTreeItem>();
-            GenericMenu menu = new GenericMenu();
+            var selectedNodes = new List<AssetBundleModel.BundleTreeItem>();
+            var menu = new GenericMenu();
 
             if (!AssetBundleModel.Model.DataSource.IsReadOnly())
             {
@@ -154,48 +218,6 @@ namespace AssetBundleBrowser
 
             menu.ShowAsContext();
         }
-
-        private void ExportABInfo(object varContext)
-        {
-            var tempBundleName = new List<string>();
-            var tmpSelectBundleInfo = varContext as List<AssetBundleModel.BundleTreeItem>;
-            tmpSelectBundleInfo.ForEach(bt => tempBundleName.Add(bt.bundle.displayName));
-            ExportBundleJson(tempBundleName);
-        }
-        private void ExportAllABInfo(object varContext)
-        {
-            ExportBundleJson(new List<string>(AssetDatabase.GetAllAssetBundleNames()));
-        }
-        private void ImportABInfo(object varContext)
-        {
-            string tempOpenPath = EditorUtility.OpenFilePanel("Select AssetBuddle Info", Path.GetFullPath(Path.Combine(Application.dataPath, "../")), "json");
-
-            if (!File.Exists(tempOpenPath)) return;
-
-            var tempStr = File.ReadAllText(tempOpenPath);
-            var tmpAssetBundleInfo = JsonFx.Json.JsonReader.Deserialize<Dictionary<string, string>>(tempStr);
-
-            AssetDatabase.StartAssetEditing();
-            foreach (var tempkvp in tmpAssetBundleInfo)
-            {
-                var tempImporter = AssetImporter.GetAtPath(tempkvp.Key);
-                tempImporter.SetAssetBundleNameAndVariant(tempkvp.Value, string.Empty);
-            }
-            AssetDatabase.StopAssetEditing();
-
-            ForceReloadData(null);
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-        }
-
-        private void ExportBundleJson(List<string> varBundleNames)
-        {
-            var tempSavaPath = EditorUtility.SaveFilePanel("Sava Current AssetBuddle Info", Path.GetFullPath(Path.Combine(Application.dataPath, "../")), "ABInfo", "json");
-            if (MiscUtils.ExportBundleJson(tempSavaPath, varBundleNames))
-            {
-                EditorUtility.RevealInFinder(tempSavaPath);
-            }
-        }
-
         protected override void ContextClickedItem(int id)
         {
             if (AssetBundleModel.Model.DataSource.IsReadOnly()) return;
@@ -256,208 +278,40 @@ namespace AssetBundleBrowser
             }
 
             menu.AddSeparator(string.Empty);
+            menu.AddItem(new GUIContent("Redundancies data"), false, RedundanciesAB, selectedNodes);
+
+            menu.AddSeparator(string.Empty);
             menu.AddItem(new GUIContent("Import data"), false, ImportABInfo, selectedNodes);
             menu.AddSeparator(string.Empty);
             menu.AddItem(new GUIContent("Export Select Data"), false, ExportABInfo, selectedNodes);
+            menu.AddItem(new GUIContent("Clean all data"), false, ForceCleanData, selectedNodes);
             menu.AddItem(new GUIContent("Export All Data"), false, ExportAllABInfo, selectedNodes);
 
             menu.ShowAsContext();
         }
-        void ForceReloadData(object context)
+        protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
         {
-            AssetBundleModel.Model.ForceReloadData(this);
-        }
-        void ForceCleanData(object context)
-        {
-            var tempAs = AssetDatabase.GetAllAssetBundleNames();
-            foreach (var item in tempAs)
-            {
-                AssetDatabase.RemoveAssetBundleName(item, true);
-            }
-            AssetBundleModel.Model.ForceReloadData(this);
-        }
+            if (args.draggedItemIDs == null)
+                return;
 
-        void RedundanciesAB(object context)
-        {
-            try
-            {
-                EditorUtility.DisplayProgressBar("RedundanciesAB", "GetAllAssetBundleNames", 0.1f);
-                var tempABs = AssetDatabase.GetAllAssetBundleNames();
-                EditorUtility.DisplayProgressBar("RedundanciesAB", "Optimize", 0.25f);
-                RedundanciesOp.Optimize(ref tempABs);
-                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.7f);
-                AssetDatabase.RemoveUnusedAssetBundleNames();
-                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.75f);
-                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.9f);
-                AssetBundleModel.Model.ForceReloadData(this);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
-        }
+            DragAndDrop.PrepareStartDrag();
 
-        void CreateNewSiblingFolder(object context)
-        {
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count > 0)
+            var selectedBundles = new List<AssetBundleModel.BundleInfo>();
+            foreach (var id in args.draggedItemIDs)
             {
-                AssetBundleModel.BundleFolderConcreteInfo folder = null;
-                folder = selectedNodes[0].bundle.parent as AssetBundleModel.BundleFolderConcreteInfo;
-                CreateFolderUnderParent(folder);
+                var item = FindItem(id, rootItem) as AssetBundleModel.BundleTreeItem;
+                selectedBundles.Add(item.bundle);
             }
-            else
-                Debug.LogError("could not add 'sibling' with no bundles selected");
+            DragAndDrop.paths = null;
+            DragAndDrop.objectReferences = m_EmptyObjectList.ToArray();
+            DragAndDrop.SetGenericData("AssetBundleModel.BundleInfo", selectedBundles);
+            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;//Move;
+            DragAndDrop.StartDrag("AssetBundleTree");
         }
-        void CreateFolder(object context)
+        protected override bool CanStartDrag(CanStartDragArgs args)
         {
-            AssetBundleModel.BundleFolderConcreteInfo folder = null;
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count > 0)
-            {
-                folder = selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo;
-            }
-            CreateFolderUnderParent(folder);
+            return true;
         }
-        void CreateFolderUnderParent(AssetBundleModel.BundleFolderConcreteInfo folder)
-        {
-            var newBundle = AssetBundleModel.Model.CreateEmptyBundleFolder(folder);
-            ReloadAndSelect(newBundle.nameHashCode, true);
-        }
-        void RenameBundle(object context)
-        {
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count > 0)
-            {
-                BeginRename(FindItem(selectedNodes[0].bundle.nameHashCode, rootItem));
-            }
-        }
-
-        void CreateNewSiblingBundle(object context)
-        {
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count > 0)
-            {
-                AssetBundleModel.BundleFolderConcreteInfo folder = null;
-                folder = selectedNodes[0].bundle.parent as AssetBundleModel.BundleFolderConcreteInfo;
-                CreateBundleUnderParent(folder);
-            }
-            else
-                Debug.LogError("could not add 'sibling' with no bundles selected");
-        }
-        void CreateNewBundle(object context)
-        {
-            AssetBundleModel.BundleFolderConcreteInfo folder = null;
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count > 0)
-            {
-                folder = selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo;
-            }
-            CreateBundleUnderParent(folder);
-        }
-
-        void CreateBundleUnderParent(AssetBundleModel.BundleFolderInfo folder)
-        {
-            var newBundle = AssetBundleModel.Model.CreateEmptyBundle(folder);
-            ReloadAndSelect(newBundle.nameHashCode, true);
-        }
-
-
-        void CreateNewSiblingVariant(object context)
-        {
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count > 0)
-            {
-                AssetBundleModel.BundleVariantFolderInfo folder = null;
-                folder = selectedNodes[0].bundle.parent as AssetBundleModel.BundleVariantFolderInfo;
-                CreateVariantUnderParent(folder);
-            }
-            else
-                Debug.LogError("could not add 'sibling' with no bundles selected");
-        }
-        void CreateNewVariant(object context)
-        {
-            AssetBundleModel.BundleVariantFolderInfo folder = null;
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes != null && selectedNodes.Count == 1)
-            {
-                folder = selectedNodes[0].bundle as AssetBundleModel.BundleVariantFolderInfo;
-                CreateVariantUnderParent(folder);
-            }
-        }
-        void CreateVariantUnderParent(AssetBundleModel.BundleVariantFolderInfo folder)
-        {
-            if (folder != null)
-            {
-                var newBundle = AssetBundleModel.Model.CreateEmptyVariant(folder);
-                ReloadAndSelect(newBundle.nameHashCode, true);
-            }
-        }
-
-        void ConvertToVariant(object context)
-        {
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            if (selectedNodes.Count == 1)
-            {
-                var bundle = selectedNodes[0].bundle as AssetBundleModel.BundleDataInfo;
-                var newBundle = AssetBundleModel.Model.HandleConvertToVariant(bundle);
-                int hash = 0;
-                if (newBundle != null)
-                    hash = newBundle.nameHashCode;
-                ReloadAndSelect(hash, true);
-            }
-        }
-
-        void DedupeOverlappedBundles(object context)
-        {
-            DedupeBundles(context, true);
-        }
-        void DedupeAllBundles(object context)
-        {
-            DedupeBundles(context, false);
-        }
-        void DedupeBundles(object context, bool onlyOverlappedAssets)
-        {
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
-            var newBundle = AssetBundleModel.Model.HandleDedupeBundles(selectedNodes.Select(item => item.bundle), onlyOverlappedAssets);
-            if (newBundle != null)
-            {
-                var selection = new List<int>();
-                selection.Add(newBundle.nameHashCode);
-                ReloadAndSelect(selection);
-            }
-            else
-            {
-                if (onlyOverlappedAssets)
-                    Debug.LogWarning("There were no duplicated assets that existed across all selected bundles.");
-                else
-                    Debug.LogWarning("No duplicate assets found after refreshing bundle contents.");
-            }
-        }
-
-        void DeleteBundles(object b)
-        {
-            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
-            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
-            ReloadAndSelect(new List<int>());
-        }
-        void ForceDeleteBundles(object b)
-        {
-            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
-            foreach (var item in selectedNodes)
-            {
-                AssetDatabase.RemoveAssetBundleName(item.bundle.m_Name.bundleName, true);
-            }
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
-            ReloadAndSelect(new List<int>());
-        }
-
         protected override void KeyEvent()
         {
             if (Event.current.keyCode == KeyCode.Delete && GetSelection().Count > 0)
@@ -469,62 +323,6 @@ namespace AssetBundleBrowser
                 }
                 DeleteBundles(selectedNodes);
             }
-        }
-
-        class DragAndDropData
-        {
-            internal bool hasBundleFolder = false;
-            internal bool hasScene = false;
-            internal bool hasNonScene = false;
-            internal bool hasVariantChild = false;
-            internal List<AssetBundleModel.BundleInfo> draggedNodes;
-            internal AssetBundleModel.BundleTreeItem targetNode;
-            internal DragAndDropArgs args;
-            internal string[] paths;
-
-            internal DragAndDropData(DragAndDropArgs a)
-            {
-                args = a;
-                draggedNodes = DragAndDrop.GetGenericData("AssetBundleModel.BundleInfo") as List<AssetBundleModel.BundleInfo>;
-                targetNode = args.parentItem as AssetBundleModel.BundleTreeItem;
-                paths = DragAndDrop.paths;
-
-                if (draggedNodes != null)
-                {
-                    foreach (var bundle in draggedNodes)
-                    {
-                        if ((bundle as AssetBundleModel.BundleFolderInfo) != null)
-                        {
-                            hasBundleFolder = true;
-                        }
-                        else
-                        {
-                            var dataBundle = bundle as AssetBundleModel.BundleDataInfo;
-                            if (dataBundle != null)
-                            {
-                                if (dataBundle.isSceneBundle)
-                                    hasScene = true;
-                                else
-                                    hasNonScene = true;
-
-                                if ((dataBundle as AssetBundleModel.BundleVariantDataInfo) != null)
-                                    hasVariantChild = true;
-                            }
-                        }
-                    }
-                }
-                else if (DragAndDrop.paths != null)
-                {
-                    foreach (var assetPath in DragAndDrop.paths)
-                    {
-                        if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(SceneAsset))
-                            hasScene = true;
-                        else
-                            hasNonScene = true;
-                    }
-                }
-            }
-
         }
         protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
         {
@@ -570,7 +368,234 @@ namespace AssetBundleBrowser
             }
             return visualMode;
         }
+        #endregion
 
+        #region [MenuAction]
+        private void CreateNewBundle(object context)
+        {
+            AssetBundleModel.BundleFolderConcreteInfo folder = null;
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                folder = selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo;
+            }
+            CreateBundleUnderParent(folder);
+        }
+        private void CreateFolder(object context)
+        {
+            AssetBundleModel.BundleFolderConcreteInfo folder = null;
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                folder = selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo;
+            }
+            CreateFolderUnderParent(folder);
+        }
+        private void ExportABInfo(object varContext)
+        {
+            var tempBundleName = new List<string>();
+            var tmpSelectBundleInfo = varContext as List<AssetBundleModel.BundleTreeItem>;
+            tmpSelectBundleInfo.ForEach(bt => tempBundleName.Add(bt.bundle.displayName));
+            ExportBundleJson(tempBundleName);
+        }
+        private void ExportAllABInfo(object varContext)
+        {
+            ExportBundleJson(AssetDatabase.GetAllAssetBundleNames());
+        }
+        private void ImportABInfo(object varContext)
+        {
+            string tempOpenPath = EditorUtility.OpenFilePanel("Select AssetBuddle Info", Path.GetFullPath(Path.Combine(Application.dataPath, "../")), "json");
+
+            if (!File.Exists(tempOpenPath)) return;
+
+            var tempStr = File.ReadAllText(tempOpenPath);
+            var tmpAssetBundleInfo = JsonFx.Json.JsonReader.Deserialize<Dictionary<string, string>>(tempStr);
+
+            AssetDatabase.StartAssetEditing();
+            foreach (var tempkvp in tmpAssetBundleInfo)
+            {
+                var tempImporter = AssetImporter.GetAtPath(tempkvp.Key);
+                tempImporter.SetAssetBundleNameAndVariant(tempkvp.Value, string.Empty);
+            }
+            AssetDatabase.StopAssetEditing();
+
+            ForceReloadData(null);
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+        }
+        private void ForceReloadData(object context)
+        {
+            AssetBundleModel.Model.ForceReloadData(this);
+        }
+        private void ForceCleanData(object context)
+        {
+            EditorUtility.DisplayProgressBar("RemoveAssetBundleName", string.Empty, 0);
+            var tempAs = AssetDatabase.GetAllAssetBundleNames();
+            for (int iA = 0; iA < tempAs.Length; ++iA)
+            {
+                if (EditorUtility.DisplayCancelableProgressBar("RemoveAssetBundleName", tempAs[iA], (float)iA / tempAs.Length)) break;
+                AssetDatabase.RemoveAssetBundleName(tempAs[iA], true);
+            }
+            AssetBundleModel.Model.ForceReloadData(this);
+            EditorUtility.ClearProgressBar();
+        }
+        private void RedundanciesAB(object context)
+        {
+            try
+            {
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "GetAllAssetBundleNames", 0.1f);
+                var tempABs = AssetDatabase.GetAllAssetBundleNames();
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "Optimize", 0.25f);
+                RedundanciesOp.Optimize(ref tempABs);
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.7f);
+                AssetDatabase.RemoveUnusedAssetBundleNames();
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.75f);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                EditorUtility.DisplayProgressBar("RedundanciesAB", "RemoveUnusedAssetBundleNames", 0.9f);
+                AssetBundleModel.Model.ForceReloadData(this);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+        private void CreateNewSiblingFolder(object context)
+        {
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                AssetBundleModel.BundleFolderConcreteInfo folder = null;
+                folder = selectedNodes[0].bundle.parent as AssetBundleModel.BundleFolderConcreteInfo;
+                CreateFolderUnderParent(folder);
+            }
+            else
+                Debug.LogError("could not add 'sibling' with no bundles selected");
+        }
+        private void RenameBundle(object context)
+        {
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                BeginRename(FindItem(selectedNodes[0].bundle.nameHashCode, rootItem));
+            }
+        }
+        private void CreateNewSiblingBundle(object context)
+        {
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                AssetBundleModel.BundleFolderConcreteInfo folder = null;
+                folder = selectedNodes[0].bundle.parent as AssetBundleModel.BundleFolderConcreteInfo;
+                CreateBundleUnderParent(folder);
+            }
+            else
+                Debug.LogError("could not add 'sibling' with no bundles selected");
+        }
+        private void CreateNewSiblingVariant(object context)
+        {
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                AssetBundleModel.BundleVariantFolderInfo folder = null;
+                folder = selectedNodes[0].bundle.parent as AssetBundleModel.BundleVariantFolderInfo;
+                CreateVariantUnderParent(folder);
+            }
+            else
+                Debug.LogError("could not add 'sibling' with no bundles selected");
+        }
+        private void CreateNewVariant(object context)
+        {
+            AssetBundleModel.BundleVariantFolderInfo folder = null;
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes != null && selectedNodes.Count == 1)
+            {
+                folder = selectedNodes[0].bundle as AssetBundleModel.BundleVariantFolderInfo;
+                CreateVariantUnderParent(folder);
+            }
+        }
+        private void ConvertToVariant(object context)
+        {
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            if (selectedNodes.Count == 1)
+            {
+                var bundle = selectedNodes[0].bundle as AssetBundleModel.BundleDataInfo;
+                var newBundle = AssetBundleModel.Model.HandleConvertToVariant(bundle);
+                int hash = 0;
+                if (newBundle != null)
+                    hash = newBundle.nameHashCode;
+                ReloadAndSelect(hash, true);
+            }
+        }
+        private void DedupeOverlappedBundles(object context)
+        {
+            DedupeBundles(context, true);
+        }
+        private void DedupeAllBundles(object context)
+        {
+            DedupeBundles(context, false);
+        }
+        private void DeleteBundles(object b)
+        {
+            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
+            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
+            ReloadAndSelect(new List<int>());
+        }
+        private void ForceDeleteBundles(object b)
+        {
+            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
+            foreach (var item in selectedNodes)
+            {
+                AssetDatabase.RemoveAssetBundleName(item.bundle.m_Name.bundleName, true);
+            }
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
+            ReloadAndSelect(new List<int>());
+        }
+        #endregion
+
+        #region [Business]
+        private void ExportBundleJson(IEnumerable<string> varBundleNames)
+        {
+            var tempSavaPath = EditorUtility.SaveFilePanel("Sava Current AssetBuddle Info", Path.GetFullPath(Path.Combine(Application.dataPath, "../")), "ABInfo", "json");
+            if (MiscUtils.ExportBundleJson(tempSavaPath, varBundleNames))
+            {
+                EditorUtility.RevealInFinder(tempSavaPath);
+            }
+        }
+        private void CreateBundleUnderParent(AssetBundleModel.BundleFolderInfo folder)
+        {
+            var newBundle = AssetBundleModel.Model.CreateEmptyBundle(folder);
+            ReloadAndSelect(newBundle.nameHashCode, true);
+        }
+        private void CreateVariantUnderParent(AssetBundleModel.BundleVariantFolderInfo folder)
+        {
+            if (folder != null)
+            {
+                var newBundle = AssetBundleModel.Model.CreateEmptyVariant(folder);
+                ReloadAndSelect(newBundle.nameHashCode, true);
+            }
+        }
+        private void DedupeBundles(object context, bool onlyOverlappedAssets)
+        {
+            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            var newBundle = AssetBundleModel.Model.HandleDedupeBundles(selectedNodes.Select(item => item.bundle), onlyOverlappedAssets);
+            if (newBundle != null)
+            {
+                var selection = new List<int>();
+                selection.Add(newBundle.nameHashCode);
+                ReloadAndSelect(selection);
+            }
+            else
+            {
+                if (onlyOverlappedAssets)
+                    Debug.LogWarning("There were no duplicated assets that existed across all selected bundles.");
+                else
+                    Debug.LogWarning("No duplicate assets found after refreshing bundle contents.");
+            }
+        }
         private DragAndDropVisualMode HandleDragDropUpon(DragAndDropData data)
         {
             DragAndDropVisualMode visualMode = DragAndDropVisualMode.Copy;//Move;
@@ -668,9 +693,6 @@ namespace AssetBundleBrowser
 
             return visualMode;
         }
-
-        private string[] dragToNewSpacePaths = null;
-        private AssetBundleModel.BundleFolderInfo dragToNewSpaceRoot = null;
         private void DragPathsAsOneBundle()
         {
             var newBundle = AssetBundleModel.Model.CreateEmptyBundle(dragToNewSpaceRoot);
@@ -690,7 +712,6 @@ namespace AssetBundleBrowser
             AssetBundleModel.Model.ExecuteAssetMove();
             ReloadAndSelect(hashCodes);
         }
-
         private void DragPathsToNewSpace(string[] paths, AssetBundleModel.BundleFolderInfo root)
         {
             dragToNewSpacePaths = paths;
@@ -708,39 +729,6 @@ namespace AssetBundleBrowser
             else
                 DragPathsAsManyBundles();
         }
-
-        protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
-        {
-            if (args.draggedItemIDs == null)
-                return;
-
-            DragAndDrop.PrepareStartDrag();
-
-            var selectedBundles = new List<AssetBundleModel.BundleInfo>();
-            foreach (var id in args.draggedItemIDs)
-            {
-                var item = FindItem(id, rootItem) as AssetBundleModel.BundleTreeItem;
-                selectedBundles.Add(item.bundle);
-            }
-            DragAndDrop.paths = null;
-            DragAndDrop.objectReferences = m_EmptyObjectList.ToArray();
-            DragAndDrop.SetGenericData("AssetBundleModel.BundleInfo", selectedBundles);
-            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;//Move;
-            DragAndDrop.StartDrag("AssetBundleTree");
-        }
-
-        protected override bool CanStartDrag(CanStartDragArgs args)
-        {
-            return true;
-        }
-
-        internal void Refresh()
-        {
-            var selection = GetSelection();
-            Reload();
-            SelectionChanged(selection);
-        }
-
         private void ReloadAndSelect(int hashCode, bool rename)
         {
             var selection = new List<int>();
@@ -757,5 +745,20 @@ namespace AssetBundleBrowser
             SetSelection(hashCodes, TreeViewSelectionOptions.RevealAndFrame);
             SelectionChanged(hashCodes);
         }
+        private void CreateFolderUnderParent(AssetBundleModel.BundleFolderConcreteInfo folder)
+        {
+            var newBundle = AssetBundleModel.Model.CreateEmptyBundleFolder(folder);
+            ReloadAndSelect(newBundle.nameHashCode, true);
+        }
+        #endregion
+
+        #region [API]
+        internal void Refresh()
+        {
+            var selection = GetSelection();
+            Reload();
+            SelectionChanged(selection);
+        }
+        #endregion
     }
 }

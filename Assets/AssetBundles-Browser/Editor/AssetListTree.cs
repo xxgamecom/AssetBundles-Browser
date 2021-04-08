@@ -420,9 +420,9 @@ namespace AssetBundleBrowser
 
         void AddAssets(object varObj)
         {
-            object[] tempResult = varObj as object[];
+            var tempResult = varObj as object[];
             var selectedNodes = tempResult[0] as List<AssetBundleModel.AssetTreeItem>;
-            string tempBundlename = tempResult[1] as string;
+            var tempBundlename = tempResult[1] as string;
 
             var assets = new List<AssetBundleModel.AssetInfo>();
             foreach (var node in selectedNodes)

@@ -11,30 +11,26 @@ namespace AssetBundleBrowser.AssetBundleModel
 {
     internal sealed class BundleTreeItem : TreeViewItem
     {
+        #region [Fields]
+        public override string displayName { get => AssetBundleBrowserMain.instance.m_ManageTab.hasSearch ? m_Bundle.m_Name.fullNativeName : m_Bundle.displayName; }
+        public override Texture2D icon { get => m_Bundle.Icon; }
+
         private BundleInfo m_Bundle;
-        internal BundleInfo bundle
-        {
-            get { return m_Bundle; }
-        }
-        internal BundleTreeItem(BundleInfo b, int depth, Texture2D iconTexture) : base(b.nameHashCode, depth, b.displayName)
+        internal BundleInfo bundle { get { return m_Bundle; } }
+        #endregion
+
+        #region [Construct]
+        internal BundleTreeItem(BundleInfo b, int depth) : base(b.nameHashCode, depth, b.displayName)
         {
             m_Bundle = b;
-            icon = iconTexture;
+            icon = b.Icon;
             children = new List<TreeViewItem>();
         }
+        #endregion
 
-        internal MessageSystem.Message BundleMessage()
-        {
-            return m_Bundle.HighestMessage();
-        }
-
-        public override string displayName
-        {
-            get
-            {
-                return AssetBundleBrowserMain.instance.m_ManageTab.hasSearch ? m_Bundle.m_Name.fullNativeName : m_Bundle.displayName;
-            }
-        }
+        #region [API]
+        internal MessageSystem.Message BundleMessage() => m_Bundle.HighestMessage();
+        #endregion
     }
 
     internal sealed class BundleNameData
@@ -171,6 +167,8 @@ namespace AssetBundleBrowser.AssetBundleModel
         protected MessageSystem.MessageState m_BundleMessages = new MessageSystem.MessageState();
         protected MessageSystem.Message m_CachedHighMessage = null;
 
+        public virtual Texture2D Icon { get; protected set; }
+
         internal BundleInfo(string name, BundleFolderInfo parent)
         {
             m_Name = new BundleNameData(name);
@@ -275,6 +273,7 @@ namespace AssetBundleBrowser.AssetBundleModel
 
     internal class BundleDataInfo : BundleInfo
     {
+        #region [Enum]
         public enum AssetType
         {
             GameObject,
@@ -291,7 +290,9 @@ namespace AssetBundleBrowser.AssetBundleModel
             Unkown,
             DefaultType = Unkown,
         }
+        #endregion
 
+        #region [Fields]
         protected List<AssetInfo> m_ConcreteAssets;
         protected List<AssetInfo> m_DependentAssets;
         protected List<BundleDependencyInfo> m_BundleDependencies;
@@ -300,6 +301,24 @@ namespace AssetBundleBrowser.AssetBundleModel
         protected bool m_IsSceneBundle;
         protected long m_TotalSize;
         protected AssetType m_AssetType = AssetType.DefaultType;
+        internal bool isSceneBundle { get { return m_AssetType == AssetType.SceneAsset; } }
+
+        private static Dictionary<Type, AssetType> AssetTypeMap = new Dictionary<Type, AssetType>
+        {
+            {typeof(GameObject),AssetType.GameObject},
+            {typeof(SceneAsset),AssetType.SceneAsset},
+            {typeof(Texture2D),AssetType.Texture2D},
+            {typeof(TextAsset),AssetType.TextAsset},
+            {typeof(Shader),AssetType.Shader},
+            {typeof(AudioClip),AssetType.AudioClip},
+            {typeof(Material),AssetType.Material},
+            {typeof(AnimationClip),AssetType.AnimationClip},
+            {typeof(AnimatorController),AssetType.AnimatorController},
+            {typeof(ShaderVariantCollection),AssetType.ShaderVariantCollection},
+            {typeof(Font),AssetType.Font},
+        };
+        #endregion
+
 
         internal BundleDataInfo(string name, BundleFolderInfo parent) : base(name, parent)
         {
@@ -344,6 +363,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             m_BundleMessages.SetFlag(MessageSystem.MessageFlag.SceneBundleConflict, false);
             m_BundleMessages.SetFlag(MessageSystem.MessageFlag.DependencySceneConflict, false);
 
+            Icon = null;
             m_ConcreteAssets.Clear();
             m_TotalSize = 0;
             //m_IsSceneBundle = false;
@@ -462,25 +482,12 @@ namespace AssetBundleBrowser.AssetBundleModel
                 }
             }
 
-
+            Icon = Model.GetIconByAssetType(m_AssetType);
             m_ConcreteCounter = 0;
             m_DependentCounter = 0;
             m_Dirty = true;
         }
-        private static Dictionary<Type, AssetType> AssetTypeMap = new Dictionary<Type, AssetType>
-        {
-            {typeof(GameObject),AssetType.GameObject},
-            {typeof(SceneAsset),AssetType.SceneAsset},
-            {typeof(Texture2D),AssetType.Texture2D},
-            {typeof(TextAsset),AssetType.TextAsset},
-            {typeof(Shader),AssetType.Shader},
-            {typeof(AudioClip),AssetType.AudioClip},
-            {typeof(Material),AssetType.Material},
-            {typeof(AnimationClip),AssetType.AnimationClip},
-            {typeof(AnimatorController),AssetType.AnimatorController},
-            {typeof(ShaderVariantCollection),AssetType.ShaderVariantCollection},
-            {typeof(Font),AssetType.Font},
-        };
+        
         private AssetType AnalysisAssetType(Type varType)
         {
             var tempType = AssetType.DefaultType;
@@ -602,17 +609,15 @@ namespace AssetBundleBrowser.AssetBundleModel
             m_Dirty = true;
         }
 
-        internal bool isSceneBundle { get { return m_AssetType == AssetType.SceneAsset; } }
-
         internal override BundleTreeItem CreateTreeView(int depth)
         {
             RefreshAssetList();
             RefreshMessages();
-            //if (isSceneBundle)
-            //    return new BundleTreeItem(this, depth, Model.GetSceneIcon());
-            //else
-            //    return new BundleTreeItem(this, depth, Model.GetBundleIcon());
-            return new BundleTreeItem(this, depth, Model.GetIconByAssetType(m_AssetType));
+            if (Icon == null)
+            {
+                Icon = Model.GetIconByAssetType(m_AssetType);
+            }
+            return new BundleTreeItem(this, depth);
         }
 
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
@@ -787,11 +792,14 @@ namespace AssetBundleBrowser.AssetBundleModel
 
     internal abstract class BundleFolderInfo : BundleInfo
     {
+        #region [Fields]
         protected Dictionary<string, BundleInfo> m_Children;
+        #endregion
 
         internal BundleFolderInfo(string name, BundleFolderInfo parent) : base(name, parent)
         {
             m_Children = new Dictionary<string, BundleInfo>();
+            Icon = Model.GetFolderIcon();
         }
 
         internal BundleFolderInfo(List<string> path, int depth, BundleFolderInfo parent) : base("", parent)
@@ -964,7 +972,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal override BundleTreeItem CreateTreeView(int depth)
         {
             RefreshMessages();
-            var result = new BundleTreeItem(this, depth, Model.GetFolderIcon());
+            var result = new BundleTreeItem(this, depth);
             foreach (var child in m_Children)
             {
                 result.AddChild(child.Value.CreateTreeView(depth + 1));
@@ -1043,25 +1051,16 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal override BundleTreeItem CreateTreeView(int depth)
         {
             RefreshMessages();
-            Texture2D icon = null;
-            //if ((m_Children.Count > 0) &&
-            //    ((m_Children.First().Value as BundleVariantDataInfo).IsSceneVariant()))
-            //{
-            //    icon = Model.GetSceneIcon();
-            //}
-            //else
-            //    icon = Model.GetBundleIcon();
-
             if ((m_Children.Count > 0))
             {
-                icon = Model.GetIconByAssetType((m_Children.First().Value as BundleVariantDataInfo).GetVariantAssetType());
+                Icon = Model.GetIconByAssetType((m_Children.First().Value as BundleVariantDataInfo).GetVariantAssetType());
             }
             else
             {
-                icon = Model.GetBundleIcon();
+                Icon = Model.GetBundleIcon();
             }
 
-            var result = new BundleTreeItem(this, depth, icon);
+            var result = new BundleTreeItem(this, depth);
             foreach (var child in m_Children)
             {
                 result.AddChild(child.Value.CreateTreeView(depth + 1));

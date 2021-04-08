@@ -72,7 +72,7 @@ namespace AssetBundleBrowser
     }
     internal class BundleDetailList : TreeView
     {
-        HashSet<AssetBundleModel.BundleDataInfo> m_Selecteditems;
+        HashSet<BundleDataInfo> m_Selecteditems;
         Rect m_TotalRect;
 
         const float k_DoubleIndent = 32f;
@@ -86,7 +86,7 @@ namespace AssetBundleBrowser
 
         internal BundleDetailList(TreeViewState state) : base(state)
         {
-            m_Selecteditems = new HashSet<AssetBundleModel.BundleDataInfo>();
+            m_Selecteditems = new HashSet<BundleDataInfo>();
             showBorder = true;
         }
         internal void Update()
@@ -130,7 +130,7 @@ namespace AssetBundleBrowser
                 Color old = GUI.color;
                 if (args.item.depth == 1 &&
                     (args.item.displayName == k_MessageEmpty || args.item.displayName == k_DependencyEmpty))
-                    GUI.color = AssetBundleModel.Model.k_LightGrey;
+                    GUI.color = Model.k_LightGrey;
                 base.RowGUI(args);
                 GUI.color = old;
             }
