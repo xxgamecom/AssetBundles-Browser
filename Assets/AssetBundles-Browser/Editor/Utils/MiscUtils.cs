@@ -50,8 +50,7 @@ namespace AssetBundleBrowser
             var tempCount = varBundleNames.Count();
             if (null == varBundleNames || tempCount == 0) return false;
 
-            //Key = AssetPath,Val = AssetBundleName;
-            var tempABAssetsDic = new Dictionary<string, string>(tempCount);
+            var tempBuilds = new List<AssetBundleBuild>();
             try
             {
                 var tempIdx = 0;
@@ -60,10 +59,7 @@ namespace AssetBundleBrowser
                     if (EditorUtility.DisplayCancelableProgressBar("ExportBundleJson", string.Format("ExportBundle {0}", tempBundleName), tempIdx++ / (float)tempCount)) break;
 
                     var tempAssets = AssetDatabase.GetAssetPathsFromAssetBundle(tempBundleName);
-                    foreach (string tempAsset in tempAssets)
-                    {
-                        tempABAssetsDic.Add(tempAsset, tempBundleName);
-                    }
+                    tempBuilds.Add(new AssetBundleBuild() { assetBundleName = tempBundleName, assetNames = tempAssets });
                 }
             }
             catch (Exception e)
@@ -75,7 +71,8 @@ namespace AssetBundleBrowser
             {
                 EditorUtility.ClearProgressBar();
             }
-            File.WriteAllText(varOutputPath, JsonFx.Json.JsonWriter.Serialize(tempABAssetsDic));
+
+            File.WriteAllText(varOutputPath, JsonFx.Json.JsonWriter.Serialize(tempBuilds));
 
             return true;
         }

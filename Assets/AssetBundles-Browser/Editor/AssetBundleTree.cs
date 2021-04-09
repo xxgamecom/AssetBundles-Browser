@@ -28,6 +28,7 @@ namespace AssetBundleBrowser
             internal string[] paths;
             #endregion
 
+            #region [Construct]
             internal DragAndDropData(DragAndDropArgs a)
             {
                 args = a;
@@ -70,6 +71,38 @@ namespace AssetBundleBrowser
                     }
                 }
             }
+            #endregion
+        }
+        private class AssetBundleBuild
+        {
+            #region [Fields]
+            //
+            // 摘要:
+            //     AssetBundle name.
+            public string assetBundleName;
+            //
+            // 摘要:
+            //     AssetBundle variant.
+            public string assetBundleVariant;
+            //
+            // 摘要:
+            //     Asset names which belong to the given AssetBundle.
+            public string[] assetNames;
+            //
+            // 摘要:
+            //     Addressable name used to load an asset.
+            public string[] addressableNames;
+            #endregion
+
+            #region [Construct]
+            public AssetBundleBuild()
+            {
+                assetBundleName = null;
+                assetBundleVariant = null;
+                assetNames = null;
+                addressableNames = null;
+            }
+            #endregion
         }
         #endregion
 
@@ -410,15 +443,21 @@ namespace AssetBundleBrowser
             if (!File.Exists(tempOpenPath)) return;
 
             var tempStr = File.ReadAllText(tempOpenPath);
-            var tmpAssetBundleInfo = JsonFx.Json.JsonReader.Deserialize<Dictionary<string, string>>(tempStr);
+            var tempBuilds = JsonFx.Json.JsonReader.Deserialize<AssetBundleBuild[]>(tempStr);
 
-            AssetDatabase.StartAssetEditing();
-            foreach (var tempkvp in tmpAssetBundleInfo)
+            using (new AssetEditingGroup())
             {
-                var tempImporter = AssetImporter.GetAtPath(tempkvp.Key);
-                tempImporter.SetAssetBundleNameAndVariant(tempkvp.Value, string.Empty);
+                foreach (var item in tempBuilds)
+                {
+                    var tempABName = item.assetBundleName;
+                    var tempABVariantName = item.assetBundleVariant;
+                    var tempAstPaths = item.assetNames;
+                    foreach (var tempPath in tempAstPaths)
+                    {
+                        Model.DataSource.SetAssetBundleNameAndVariant(tempPath, tempABName, tempABVariantName);
+                    }
+                }
             }
-            AssetDatabase.StopAssetEditing();
 
             ForceReloadData(null);
             AssetDatabase.RemoveUnusedAssetBundleNames();
@@ -540,19 +579,19 @@ namespace AssetBundleBrowser
         }
         private void DeleteBundles(object b)
         {
-            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
-            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
+            var selectedNodes = b as List<BundleTreeItem>;
+            Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
             ReloadAndSelect(new List<int>());
         }
         private void ForceDeleteBundles(object b)
         {
-            var selectedNodes = b as List<AssetBundleModel.BundleTreeItem>;
+            var selectedNodes = b as List<BundleTreeItem>;
             foreach (var item in selectedNodes)
             {
                 AssetDatabase.RemoveAssetBundleName(item.bundle.m_Name.bundleName, true);
             }
             AssetDatabase.RemoveUnusedAssetBundleNames();
-            AssetBundleModel.Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
+            Model.HandleBundleDelete(selectedNodes.Select(item => item.bundle));
             ReloadAndSelect(new List<int>());
         }
         #endregion

@@ -621,18 +621,16 @@ namespace AssetBundleBrowser.AssetBundleModel
             var size = s_MoveData.Count;
             if (size > 0)
             {
-                bool autoRefresh = EditorPrefs.GetBool("kAutoRefresh");
-                EditorPrefs.SetBool("kAutoRefresh", false);
-                AssetDatabase.StartAssetEditing();
-                EditorUtility.DisplayProgressBar("Moving assets to bundles", "", 0);
-                for (int i = 0; i < size; i++)
+                using (new AssetEditingGroup())
                 {
-                    EditorUtility.DisplayProgressBar("Moving assets to bundle " + s_MoveData[i].bundleName, Path.GetFileNameWithoutExtension(s_MoveData[i].assetName), (float)i / (float)size);
-                    s_MoveData[i].Apply();
+                    EditorUtility.DisplayProgressBar("Moving assets to bundles", string.Empty, 0);
+                    for (int i = 0; i < size; ++i)
+                    {
+                        EditorUtility.DisplayProgressBar("Moving assets to bundle " + s_MoveData[i].bundleName, Path.GetFileNameWithoutExtension(s_MoveData[i].assetName), (float)i / (float)size);
+                        s_MoveData[i].Apply();
+                    }
+                    EditorUtility.ClearProgressBar();
                 }
-                EditorUtility.ClearProgressBar();
-                AssetDatabase.StopAssetEditing();
-                EditorPrefs.SetBool("kAutoRefresh", autoRefresh);
                 s_MoveData.Clear();
             }
             if (!DataSource.IsReadOnly())
