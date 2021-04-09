@@ -458,7 +458,15 @@ namespace AssetBundleBrowser
                         var tempPath = tempAstPaths[iP];
                         if (EditorUtility.DisplayCancelableProgressBar("SetAssetBundleNameAndVariant " + tempABName, tempPath, ((float)iB / tempBuilds.Length) * ((float)iP / tempAstPaths.Length)))
                             goto Finally;
-                        Model.DataSource.SetAssetBundleNameAndVariant(tempPath, tempABName, tempABVariantName);
+                        try
+                        {
+                            Model.DataSource.SetAssetBundleNameAndVariant(tempPath, tempABName, tempABVariantName);
+                        }
+                        catch
+                        {
+                            Debug.LogErrorFormat("SetAssetBundleName Error,[{0}]", tempPath);
+                        }
+                        
                     }
                 }
                 EditorUtility.ClearProgressBar();
