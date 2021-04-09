@@ -794,6 +794,7 @@ namespace AssetBundleBrowser.AssetBundleModel
     {
         #region [Fields]
         protected Dictionary<string, BundleInfo> m_Children;
+        public override Texture2D Icon { get => Model.GetFolderIcon(); }
         #endregion
 
         internal BundleFolderInfo(string name, BundleFolderInfo parent) : base(name, parent)
