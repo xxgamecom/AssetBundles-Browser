@@ -447,20 +447,28 @@ namespace AssetBundleBrowser
 
             using (new AssetEditingGroup())
             {
-                foreach (var item in tempBuilds)
+                for (int iB = 0; iB < tempBuilds.Length; ++iB)
                 {
+                    var item = tempBuilds[iB];
                     var tempABName = item.assetBundleName;
                     var tempABVariantName = item.assetBundleVariant;
                     var tempAstPaths = item.assetNames;
-                    foreach (var tempPath in tempAstPaths)
+                    for (int iP = 0; iP < tempAstPaths.Length; ++iP)
                     {
+                        var tempPath = tempAstPaths[iP];
+                        if (EditorUtility.DisplayCancelableProgressBar("SetAssetBundleNameAndVariant " + tempABName, tempPath, ((float)iB / tempBuilds.Length) * ((float)iP / tempAstPaths.Length)))
+                            goto Finally;
                         Model.DataSource.SetAssetBundleNameAndVariant(tempPath, tempABName, tempABVariantName);
                     }
                 }
+                EditorUtility.ClearProgressBar();
             }
-
-            ForceReloadData(null);
-            AssetDatabase.RemoveUnusedAssetBundleNames();
+            
+            Finally:
+            {
+                ForceReloadData(null);
+                AssetDatabase.RemoveUnusedAssetBundleNames();
+            }
         }
         private void ForceReloadData(object context)
         {
