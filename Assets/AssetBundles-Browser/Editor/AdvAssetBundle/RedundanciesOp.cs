@@ -181,6 +181,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
         private static void PushSameDependABToABUnit(IAssetDataQuerier varQuerier, List<string> varRepeatAssets,
             Dictionary<string, List<string>> varAssetBeDep, Dictionary<string, List<string>> varABBeDep, Dictionary<string, List<string>> varABDepABs)
         {
+            var tempHashSetHelper = new HashSet<string>();
             for (int iR = 0; iR < varRepeatAssets.Count; ++iR)
             {
                 var tempAssetPath = varRepeatAssets[iR];
@@ -193,18 +194,14 @@ namespace AssetBundleBrowser.AdvAssetBundle
                     continue;
                 }
 
-                var tempAllABDeps = new List<string>();
+                tempHashSetHelper.Clear();
                 for (int iBD = 0; iBD < tempAssetBeDeps.Count; ++iBD)
                 {
                     var tempABName = tempAssetBeDeps[iBD];
-
-                    tempAllABDeps.AddRange(varABDepABs[tempABName]);
-                    tempAllABDeps.Add(tempABName);
+                    tempHashSetHelper.UnionWith(varABDepABs[tempABName]);
+                    tempHashSetHelper.Add(tempABName);
                 }
-                var tempHashSet = new HashSet<string>(tempAllABDeps);
-                tempAllABDeps.Clear();
-                tempAllABDeps.AddRange(tempHashSet);
-                tempAllABDeps.Sort();
+                var tempAllABDeps = tempHashSetHelper.OrderBy(a => a).ToList();
 
                 for (int iAD = tempAllABDeps.Count - 1; iAD >= 0; --iAD)
                 {

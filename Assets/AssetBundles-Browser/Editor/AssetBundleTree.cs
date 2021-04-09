@@ -8,6 +8,7 @@ using UnityEditor.IMGUI.Controls;
 using AssetBundleBrowser.AdvAssetBundle;
 
 using UObject = UnityEngine.Object;
+using AssetBundleBrowser.AssetBundleModel;
 
 namespace AssetBundleBrowser
 {
@@ -192,14 +193,14 @@ namespace AssetBundleBrowser
             var selectedNodes = new List<AssetBundleModel.BundleTreeItem>();
             var menu = new GenericMenu();
 
-            if (!AssetBundleModel.Model.DataSource.IsReadOnly())
+            if (!Model.DataSource.IsReadOnly())
             {
                 menu.AddItem(new GUIContent("Add new bundle"), false, CreateNewBundle, selectedNodes);
                 menu.AddItem(new GUIContent("Add new folder"), false, CreateFolder, selectedNodes);
             }
             menu.AddSeparator(string.Empty);
 
-            var tempExitAB = AssetDatabase.GetAllAssetBundleNames().Length != 0;
+            var tempExitAB = Model.DataSource.GetAllAssetBundleNames().Length != 0;
             if (tempExitAB)
             {
                 menu.AddItem(new GUIContent("Export all data"), false, ExportAllABInfo, selectedNodes);
@@ -235,14 +236,14 @@ namespace AssetBundleBrowser
             if (selectedNodes.Count == 1)
             {
                 var tempSelectFirstNode = selectedNodes[0];
-                if ((tempSelectFirstNode.bundle as AssetBundleModel.BundleFolderConcreteInfo) != null)
+                if ((tempSelectFirstNode.bundle as BundleFolderConcreteInfo) != null)
                 {
                     menu.AddItem(new GUIContent("Add Child/New Bundle"), false, CreateNewBundle, selectedNodes);
                     menu.AddItem(new GUIContent("Add Child/New Folder"), false, CreateFolder, selectedNodes);
                     menu.AddItem(new GUIContent("Add Sibling/New Bundle"), false, CreateNewSiblingBundle, selectedNodes);
                     menu.AddItem(new GUIContent("Add Sibling/New Folder"), false, CreateNewSiblingFolder, selectedNodes);
                 }
-                else if ((tempSelectFirstNode.bundle as AssetBundleModel.BundleVariantFolderInfo) != null)
+                else if ((tempSelectFirstNode.bundle as BundleVariantFolderInfo) != null)
                 {
                     menu.AddItem(new GUIContent("Add Child/New Variant"), false, CreateNewVariant, selectedNodes);
                     menu.AddItem(new GUIContent("Add Sibling/New Bundle"), false, CreateNewSiblingBundle, selectedNodes);
@@ -250,7 +251,7 @@ namespace AssetBundleBrowser
                 }
                 else
                 {
-                    var variant = tempSelectFirstNode.bundle as AssetBundleModel.BundleVariantDataInfo;
+                    var variant = tempSelectFirstNode.bundle as BundleVariantDataInfo;
                     if (variant == null)
                     {
                         menu.AddItem(new GUIContent("Add Sibling/New Bundle"), false, CreateNewSiblingBundle, selectedNodes);
@@ -383,18 +384,18 @@ namespace AssetBundleBrowser
         }
         private void CreateFolder(object context)
         {
-            AssetBundleModel.BundleFolderConcreteInfo folder = null;
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            BundleFolderConcreteInfo folder = null;
+            var selectedNodes = context as List<BundleTreeItem>;
             if (selectedNodes != null && selectedNodes.Count > 0)
             {
-                folder = selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo;
+                folder = selectedNodes[0].bundle as BundleFolderConcreteInfo;
             }
             CreateFolderUnderParent(folder);
         }
         private void ExportABInfo(object varContext)
         {
             var tempBundleName = new List<string>();
-            var tmpSelectBundleInfo = varContext as List<AssetBundleModel.BundleTreeItem>;
+            var tmpSelectBundleInfo = varContext as List<BundleTreeItem>;
             tmpSelectBundleInfo.ForEach(bt => tempBundleName.Add(bt.bundle.displayName));
             ExportBundleJson(tempBundleName);
         }
@@ -435,7 +436,7 @@ namespace AssetBundleBrowser
                 if (EditorUtility.DisplayCancelableProgressBar("RemoveAssetBundleName", tempAs[iA], (float)iA / tempAs.Length)) break;
                 AssetDatabase.RemoveAssetBundleName(tempAs[iA], true);
             }
-            AssetBundleModel.Model.ForceReloadData(this);
+            Model.ForceReloadData(this);
             EditorUtility.ClearProgressBar();
         }
         private void RedundanciesAB(object context)

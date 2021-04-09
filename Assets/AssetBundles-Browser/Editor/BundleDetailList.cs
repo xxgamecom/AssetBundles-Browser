@@ -206,7 +206,7 @@ namespace AssetBundleBrowser
             }
         }
 
-        internal static TreeViewItem AppendBundleToTree(AssetBundleModel.BundleDataInfo bundle)
+        internal static TreeViewItem AppendBundleToTree(BundleDataInfo bundle)
         {
             var itemName = bundle.m_Name.fullNativeName;
             var bunRoot = new TreeViewItem(itemName.GetHashCode(), 0, itemName);
@@ -275,7 +275,7 @@ namespace AssetBundleBrowser
 
 
 
-        internal void SetItems(IEnumerable<AssetBundleModel.BundleInfo> items)
+        internal void SetItems(IEnumerable<BundleInfo> items)
         {
             m_Selecteditems.Clear();
             foreach (var item in items)
@@ -286,14 +286,14 @@ namespace AssetBundleBrowser
             Reload();
             ExpandAll(2);
         }
-        internal void CollectBundles(AssetBundleModel.BundleInfo bundle)
+        internal void CollectBundles(BundleInfo bundle)
         {
-            var bunData = bundle as AssetBundleModel.BundleDataInfo;
+            var bunData = bundle as BundleDataInfo;
             if (bunData != null)
                 m_Selecteditems.Add(bunData);
             else
             {
-                var bunFolder = bundle as AssetBundleModel.BundleFolderInfo;
+                var bunFolder = bundle as BundleFolderInfo;
                 var tempChildList = bunFolder.GetChildList();
                 foreach (var bun in tempChildList)
                 {
@@ -304,7 +304,7 @@ namespace AssetBundleBrowser
 
         internal void ExpandAll(int maximumDepth)
         {
-            List<int> expanded = new List<int>(GetExpanded());
+            var expanded = new List<int>(GetExpanded());
             FindItems(rootItem, maximumDepth, expanded);
             SetExpanded(expanded);
         }

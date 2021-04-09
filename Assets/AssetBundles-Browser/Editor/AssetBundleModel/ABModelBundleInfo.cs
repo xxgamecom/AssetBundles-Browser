@@ -35,40 +35,13 @@ namespace AssetBundleBrowser.AssetBundleModel
 
     internal sealed class BundleNameData
     {
+        #region [Fields]
         private List<string> m_PathTokens;
         private string m_FullBundleName;
         private string m_ShortName;
         private string m_VariantName;
         private string m_FullNativeName;
 
-        //input (received from native) is a string of format:
-        //  /folder0/.../folderN/name.variant
-        //it's broken into:
-        //  /m_pathTokens[0]/.../m_pathTokens[n]/m_shortName.m_variantName
-        // and...
-        //  m_fullBundleName = /m_pathTokens[0]/.../m_pathTokens[n]/m_shortName
-        // and...
-        //  m_fullNativeName = m_fullBundleName.m_variantName which is the same as the initial input.
-        internal BundleNameData(string name) { SetName(name); }
-        internal BundleNameData(string path, string name)
-        {
-            string finalName = string.IsNullOrEmpty(path) ? "" : path + '/';
-            finalName += name;
-            SetName(finalName);
-        }
-        public override int GetHashCode()
-        {
-            return fullNativeName.GetHashCode();
-        }
-        internal string fullNativeName
-        { get { return m_FullNativeName; } }
-
-        internal void SetBundleName(string bundleName, string variantName)
-        {
-            string name = bundleName;
-            name += string.IsNullOrEmpty(variantName) ? "" : "." + variantName;
-            SetName(name);
-        }
         internal string bundleName
         {
             get { return m_FullBundleName; }
@@ -85,7 +58,10 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 m_VariantName = value;
                 m_FullNativeName = m_FullBundleName;
-                m_FullNativeName += string.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
+                if (!string.IsNullOrEmpty(m_VariantName))
+                {
+                    m_FullNativeName += "." + m_VariantName;
+                }
             }
         }
         internal List<string> pathTokens
@@ -98,7 +74,79 @@ namespace AssetBundleBrowser.AssetBundleModel
                 GenerateFullName();
             }
         }
+        internal string fullNativeName
+        { get { return m_FullNativeName; } }
+        #endregion
 
+        #region [Constrcut]
+        //input (received from native) is a string of format:
+        //  /folder0/.../folderN/name.variant
+        //it's broken into:
+        //  /m_pathTokens[0]/.../m_pathTokens[n]/m_shortName.m_variantName
+        // and...
+        //  m_fullBundleName = /m_pathTokens[0]/.../m_pathTokens[n]/m_shortName
+        // and...
+        //  m_fullNativeName = m_fullBundleName.m_variantName which is the same as the initial input.
+        internal BundleNameData(string name) { SetName(name); }
+        internal BundleNameData(string path, string name)
+        {
+            string finalName = string.IsNullOrEmpty(path) ? "" : path + '/';
+            finalName += name;
+            SetName(finalName);
+        }
+        #endregion
+
+        #region [API]
+        public override int GetHashCode()
+        {
+            return fullNativeName.GetHashCode();
+        }
+
+        internal void SetBundleName(string bundleName, string variantName)
+        {
+            string name = bundleName;
+            name += string.IsNullOrEmpty(variantName) ? "" : "." + variantName;
+            SetName(name);
+        }
+        internal void PartialNameChange(string newToken, int indexFromBack)
+        {
+            if (indexFromBack == 0)
+            {
+                SetShortName(newToken);
+            }
+            else if (indexFromBack - 1 < m_PathTokens.Count)
+            {
+                m_PathTokens[m_PathTokens.Count - indexFromBack] = newToken;
+            }
+            GenerateFullName();
+        }
+        #endregion
+
+        #region [Business]
+        private void GenerateFullName()
+        {
+            m_FullBundleName = string.Empty;
+
+            if (m_PathTokens.Count != 0)
+            {
+                for (int i = 0; i < m_PathTokens.Count; i++)
+                {
+                    m_FullBundleName += m_PathTokens[i];
+                    m_FullBundleName += '/';
+                }
+                m_FullBundleName += m_ShortName;
+            }
+            else
+            {
+                m_FullBundleName = m_ShortName;
+            }
+
+            m_FullNativeName = m_FullBundleName;
+            if (!string.IsNullOrEmpty(m_VariantName))
+            {
+                m_FullNativeName += "." + m_VariantName;
+            }
+        }
         private void SetName(string name)
         {
             if (m_PathTokens == null)
@@ -114,7 +162,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                 previousIndex = indexOfSlash + 1;
                 indexOfSlash = name.IndexOf('/', previousIndex);
             }
-            SetShortName(name.Substring(previousIndex));
+            SetShortName(previousIndex > 0 ? name.Substring(previousIndex) : name);
             GenerateFullName();
         }
         private void SetShortName(string inputName)
@@ -130,32 +178,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             else
                 m_VariantName = string.Empty;
         }
-
-        internal void PartialNameChange(string newToken, int indexFromBack)
-        {
-            if (indexFromBack == 0)
-            {
-                SetShortName(newToken);
-            }
-            else if (indexFromBack - 1 < m_PathTokens.Count)
-            {
-                m_PathTokens[m_PathTokens.Count - indexFromBack] = newToken;
-            }
-            GenerateFullName();
-        }
-
-        private void GenerateFullName()
-        {
-            m_FullBundleName = string.Empty;
-            for (int i = 0; i < m_PathTokens.Count; i++)
-            {
-                m_FullBundleName += m_PathTokens[i];
-                m_FullBundleName += '/';
-            }
-            m_FullBundleName += m_ShortName;
-            m_FullNativeName = m_FullBundleName;
-            m_FullNativeName += string.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
-        }
+        #endregion
     }
 
     internal abstract class BundleInfo
@@ -487,7 +510,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             m_DependentCounter = 0;
             m_Dirty = true;
         }
-        
+
         private AssetType AnalysisAssetType(Type varType)
         {
             var tempType = AssetType.DefaultType;
