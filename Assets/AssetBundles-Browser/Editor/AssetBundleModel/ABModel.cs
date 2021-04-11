@@ -621,7 +621,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             var size = s_MoveData.Count;
             if (size > 0)
             {
-                using (new AssetEditingGroup())
+                //using (new AssetEditingGroup())
                 {
                     EditorUtility.DisplayProgressBar("Moving assets to bundles", string.Empty, 0);
                     for (int i = 0; i < size; ++i)

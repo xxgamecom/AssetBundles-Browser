@@ -235,8 +235,8 @@ namespace AssetBundleBrowser
             if (selectedIds == null)
                 return;
 
-            List<Object> selectedObjects = new List<Object>();
-            List<AssetBundleModel.AssetInfo> selectedAssets = new List<AssetBundleModel.AssetInfo>();
+            var selectedObjects = new List<Object>();
+            var selectedAssets = new List<AssetBundleModel.AssetInfo>();
             foreach (var id in selectedIds)
             {
                 var assetItem = FindItem(id, rootItem) as AssetBundleModel.AssetTreeItem;

@@ -103,7 +103,16 @@ namespace AssetBundleBrowser.AssetBundleModel
                 if (_UfileSize != 0) return _UfileSize;
                 if (assetType == typeof(Texture2D))
                 {
-                    _UfileSize = assetType != typeof(Texture2D) ? 0 : AssetDatabase.LoadAssetAtPath<Texture2D>(m_AssetName).GetRawTextureData().LongLength;
+                    if (assetType == typeof(Texture2D))
+                    {
+                        var tempObj = AssetDatabase.LoadAssetAtPath<Texture2D>(m_AssetName);
+                        _UfileSize = tempObj.GetRawTextureData().LongLength;
+                        Resources.UnloadAsset(tempObj);
+                    }
+                    else
+                    {
+                        _UfileSize = 0;
+                    }
                 }
                 return _UfileSize;
             }
@@ -175,7 +184,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         }
         internal IEnumerable<MessageSystem.Message> GetMessages()
         {
-            List<MessageSystem.Message> messages = new List<MessageSystem.Message>();
+            var messages = new List<MessageSystem.Message>();
             if (IsMessageSet(MessageSystem.MessageFlag.SceneBundleConflict))
             {
                 var message = displayName + "\n";

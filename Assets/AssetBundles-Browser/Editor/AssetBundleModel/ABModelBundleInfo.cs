@@ -404,7 +404,9 @@ namespace AssetBundleBrowser.AssetBundleModel
             var assets = Model.DataSource.GetAssetPathsFromAssetBundle(m_Name.fullNativeName);
             foreach (var assetName in assets)
             {
-                AssetType tempType = AnalysisAssetType(AssetDatabase.GetMainAssetTypeAtPath(assetName));
+                if (!MiscUtils.ValidateAsset(assetName)) continue;
+
+                AssetType tempType = AnalysisAssetType(Model.DataSource.GetMainAssetTypeAtPath(assetName));
                 if (tempType == AssetType.SceneAsset)
                 {
                     m_AssetType = tempType;

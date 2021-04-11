@@ -91,15 +91,14 @@ namespace AssetBundleBrowser
         }
         internal void Update()
         {
-            bool dirty = false;
             foreach (var bundle in m_Selecteditems)
             {
-                dirty |= bundle.dirty;
-            }
-            if (dirty)
-            {
-                Reload();
-                ExpandAll(2);
+                if (bundle.dirty)
+                {
+                    Reload();
+                    ExpandAll(2);
+                    break;
+                }
             }
         }
         protected override TreeViewItem BuildRoot()
@@ -272,8 +271,6 @@ namespace AssetBundleBrowser
 
             return bunRoot;
         }
-
-
 
         internal void SetItems(IEnumerable<BundleInfo> items)
         {

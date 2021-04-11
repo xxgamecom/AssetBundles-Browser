@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace AssetBundleBrowser
 {
@@ -59,8 +60,9 @@ namespace AssetBundleBrowser
                     if (EditorUtility.DisplayCancelableProgressBar("ExportBundleJson", string.Format("ExportBundle {0}", tempBundleName), tempIdx++ / (float)tempCount)) break;
 
                     var tempAssets = AssetDatabase.GetAssetPathsFromAssetBundle(tempBundleName);
-                    tempBuilds.Add(new AssetBundleBuild() { assetBundleName = tempBundleName, assetNames = tempAssets });
+                    tempBuilds.Add(new AssetBundleBuild() { assetBundleName = tempBundleName, assetNames = tempAssets.OrderBy(a => a).ToArray() });
                 }
+                tempBuilds = tempBuilds.OrderBy(a => a.assetBundleName).ToList();
             }
             catch (Exception e)
             {
@@ -89,6 +91,50 @@ namespace AssetBundleBrowser
 
             var tempExt = Path.GetExtension(pathName).ToLower();
             return _AtomAssetExtension.Contains(tempExt);
+        }
+        public static void SetAssetBundleNameAndVariant_UseFileIO(string varAssetPath, string varBundleName, string varVariantName)
+        {
+            if (!varAssetPath.StartsWith("Assets/")) return;
+
+            var tempMetaPath = Path.Combine(Application.dataPath, varAssetPath.Substring("Assets/".Length)) + ".meta";
+            var tempMetaStr = File.ReadAllText(tempMetaPath);
+
+            var tempBundleMatch = Regex.Match(tempMetaStr, @"assetBundleName\: [ \S]*", RegexOptions.Multiline);
+            if (tempBundleMatch.Success)
+            {
+                tempMetaStr = tempMetaStr.Replace(tempBundleMatch.Value, "assetBundleName: " + varBundleName.Replace(@"\", "/").ToLower());
+            }
+
+            var tempVariantMatch = Regex.Match(tempMetaStr, @"assetBundleVariant\: [ \S]*", RegexOptions.Multiline);
+            if (tempVariantMatch.Success)
+            {
+                tempMetaStr = tempMetaStr.Replace(tempVariantMatch.Value, "assetBundleVariant: " + varVariantName.Replace(@"\", "/").ToLower());
+            }
+
+            if (tempBundleMatch.Success || tempVariantMatch.Success)
+            {
+                File.WriteAllText(tempMetaPath, tempMetaStr);
+            }
+        }
+        public static void GetAssetBundleNameAndVariant_UseFileIO(string varAssetPath, out string varBundleName, out string varVariantName)
+        {
+            varBundleName = varVariantName = string.Empty;
+
+            if (!varAssetPath.StartsWith("Assets/")) return;
+
+            var tempMetaPath = Path.Combine(Application.dataPath, varAssetPath.Substring("Assets/".Length)) + ".meta";
+            var tempMetaStr = File.ReadAllText(tempMetaPath);
+            var tempBundleMatch = Regex.Match(tempMetaStr, @"assetBundleName\: ([ \S]*)", RegexOptions.Multiline);
+            if (tempBundleMatch.Success)
+            {
+                varBundleName = tempBundleMatch.Groups[1].Value;
+            }
+
+            var tempVariantMatch = Regex.Match(tempMetaStr, @"assetBundleVariant\: ([ \S]*)", RegexOptions.Multiline);
+            if (tempVariantMatch.Success)
+            {
+                varBundleName = tempVariantMatch.Groups[1].Value;
+            }
         }
         #endregion
 

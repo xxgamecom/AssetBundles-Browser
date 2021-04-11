@@ -32,21 +32,21 @@ namespace AssetBundleBrowser
             internal DragAndDropData(DragAndDropArgs a)
             {
                 args = a;
-                draggedNodes = DragAndDrop.GetGenericData("AssetBundleModel.BundleInfo") as List<AssetBundleModel.BundleInfo>;
-                targetNode = args.parentItem as AssetBundleModel.BundleTreeItem;
+                draggedNodes = DragAndDrop.GetGenericData("AssetBundleModel.BundleInfo") as List<BundleInfo>;
+                targetNode = args.parentItem as BundleTreeItem;
                 paths = DragAndDrop.paths;
 
                 if (draggedNodes != null)
                 {
                     foreach (var bundle in draggedNodes)
                     {
-                        if ((bundle as AssetBundleModel.BundleFolderInfo) != null)
+                        if ((bundle as BundleFolderInfo) != null)
                         {
                             hasBundleFolder = true;
                         }
                         else
                         {
-                            var dataBundle = bundle as AssetBundleModel.BundleDataInfo;
+                            var dataBundle = bundle as BundleDataInfo;
                             if (dataBundle != null)
                             {
                                 if (dataBundle.isSceneBundle)
@@ -54,7 +54,7 @@ namespace AssetBundleBrowser
                                 else
                                     hasNonScene = true;
 
-                                if ((dataBundle as AssetBundleModel.BundleVariantDataInfo) != null)
+                                if ((dataBundle as BundleVariantDataInfo) != null)
                                     hasVariantChild = true;
                             }
                         }
@@ -112,13 +112,14 @@ namespace AssetBundleBrowser
         private List<UObject> m_EmptyObjectList = new List<UObject>();
 
         private string[] dragToNewSpacePaths = null;
-        private AssetBundleModel.BundleFolderInfo dragToNewSpaceRoot = null;
+        private BundleFolderInfo dragToNewSpaceRoot = null;
+        private static List<BundleInfo> _SelectedBundles = new List<BundleInfo>();
         #endregion
 
         #region [Construct]
         internal AssetBundleTree(TreeViewState state, AssetBundleManageTab ctrl) : base(state)
         {
-            AssetBundleModel.Model.Rebuild();
+            Model.Rebuild();
             m_Controller = ctrl;
             showBorder = true;
         }
@@ -184,7 +185,6 @@ namespace AssetBundleBrowser
             var root = AssetBundleModel.Model.CreateBundleTreeView();
             return root;
         }
-        private static List<AssetBundleModel.BundleInfo> _SelectedBundles = new List<AssetBundleModel.BundleInfo>();
         protected override void SelectionChanged(IList<int> selectedIds)
         {
             _SelectedBundles.Clear();
@@ -223,45 +223,54 @@ namespace AssetBundleBrowser
                 return;
             }
 
-            var selectedNodes = new List<AssetBundleModel.BundleTreeItem>();
             var menu = new GenericMenu();
-
+            
             if (!Model.DataSource.IsReadOnly())
             {
-                menu.AddItem(new GUIContent("Add new bundle"), false, CreateNewBundle, selectedNodes);
-                menu.AddItem(new GUIContent("Add new folder"), false, CreateFolder, selectedNodes);
+                menu.AddItem(new GUIContent("Add new bundle"), false, CreateNewBundle, null);
+                menu.AddItem(new GUIContent("Add new folder"), false, CreateFolder, null);
             }
             menu.AddSeparator(string.Empty);
 
             var tempExitAB = Model.DataSource.GetAllAssetBundleNames().Length != 0;
+            var tempExportGUI = new GUIContent("Export all data");
             if (tempExitAB)
             {
-                menu.AddItem(new GUIContent("Export all data"), false, ExportAllABInfo, selectedNodes);
+                menu.AddItem(tempExportGUI, false, ExportAllABInfo, null);
             }
-            menu.AddItem(new GUIContent("Import data"), false, ImportABInfo, selectedNodes);
+            else
+            {
+                menu.AddDisabledItem(tempExportGUI);
+            }
+            menu.AddItem(new GUIContent("Import data"), false, ImportABInfo, null);
 
+            menu.AddSeparator(string.Empty);
+            var tempRedDataGUI = new GUIContent("Redundancies data");
             if (tempExitAB)
             {
-                menu.AddSeparator(string.Empty);
-                menu.AddItem(new GUIContent("Redundancies data"), false, RedundanciesAB, selectedNodes);
+                menu.AddItem(tempRedDataGUI, false, RedundanciesAB, null);
+            }
+            else
+            {
+                menu.AddDisabledItem(tempRedDataGUI);
             }
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(new GUIContent("Clean all data"), false, ForceCleanData, selectedNodes);
-            menu.AddItem(new GUIContent("Reload all data"), false, ForceReloadData, selectedNodes);
+            menu.AddItem(new GUIContent("Clean all data"), false, ForceCleanData, null);
+            menu.AddItem(new GUIContent("Reload all data"), false, ForceReloadData, null);
 
             menu.ShowAsContext();
         }
         protected override void ContextClickedItem(int id)
         {
-            if (AssetBundleModel.Model.DataSource.IsReadOnly()) return;
+            if (Model.DataSource.IsReadOnly()) return;
 
             m_ContextOnItem = true;
             var tempSelection = GetSelection();
-            var selectedNodes = new List<AssetBundleModel.BundleTreeItem>(tempSelection.Count);
+            var selectedNodes = new List<BundleTreeItem>(tempSelection.Count);
             foreach (var nodeID in tempSelection)
             {
-                selectedNodes.Add(FindItem(nodeID, rootItem) as AssetBundleModel.BundleTreeItem);
+                selectedNodes.Add(FindItem(nodeID, rootItem) as BundleTreeItem);
             }
 
             GenericMenu menu = new GenericMenu();
@@ -363,7 +372,7 @@ namespace AssetBundleBrowser
             DragAndDropVisualMode visualMode = DragAndDropVisualMode.None;
             DragAndDropData data = new DragAndDropData(args);
 
-            if (AssetBundleModel.Model.DataSource.IsReadOnly())
+            if (Model.DataSource.IsReadOnly())
             {
                 return DragAndDropVisualMode.Rejected;
             }
@@ -386,7 +395,7 @@ namespace AssetBundleBrowser
                         visualMode = DragAndDropVisualMode.Copy;
                         if (data.args.performDrop)
                         {
-                            AssetBundleModel.Model.HandleBundleReparent(data.draggedNodes, null);
+                            Model.HandleBundleReparent(data.draggedNodes, null);
                             Reload();
                         }
                     }
@@ -407,11 +416,11 @@ namespace AssetBundleBrowser
         #region [MenuAction]
         private void CreateNewBundle(object context)
         {
-            AssetBundleModel.BundleFolderConcreteInfo folder = null;
-            var selectedNodes = context as List<AssetBundleModel.BundleTreeItem>;
+            BundleFolderConcreteInfo folder = null;
+            var selectedNodes = context as List<BundleTreeItem>;
             if (selectedNodes != null && selectedNodes.Count > 0)
             {
-                folder = selectedNodes[0].bundle as AssetBundleModel.BundleFolderConcreteInfo;
+                folder = selectedNodes[0].bundle as BundleFolderConcreteInfo;
             }
             CreateBundleUnderParent(folder);
         }
@@ -486,13 +495,25 @@ namespace AssetBundleBrowser
         {
             EditorUtility.DisplayProgressBar("RemoveAssetBundleName", string.Empty, 0);
             var tempAs = AssetDatabase.GetAllAssetBundleNames();
-            for (int iA = 0; iA < tempAs.Length; ++iA)
+            using (new AssetEditingGroup())
             {
-                if (EditorUtility.DisplayCancelableProgressBar("RemoveAssetBundleName", tempAs[iA], (float)iA / tempAs.Length)) break;
-                AssetDatabase.RemoveAssetBundleName(tempAs[iA], true);
+                for (int iA = 0; iA < tempAs.Length; ++iA)
+                {
+                    if (EditorUtility.DisplayCancelableProgressBar(string.Format("RemoveAssetBundleName({0}/{1})", iA, tempAs.Length), tempAs[iA], (float)iA / tempAs.Length)) break;
+
+                    var tempAstPaths = AssetDatabase.GetAssetPathsFromAssetBundle(tempAs[iA]);
+                    for (int iP = 0; iP < tempAstPaths.Length; ++iP)
+                    {
+                        var tempPath = tempAstPaths[iP];
+                        EditorUtility.DisplayProgressBar(string.Format("RemoveAssetBundleName({0}/{1})", iA, tempAs.Length), tempAs[iA], ((float)iA / tempAs.Length) * ((float)iP / tempAstPaths.Length));
+                        MiscUtils.SetAssetBundleNameAndVariant_UseFileIO(tempPath, string.Empty, string.Empty);
+                    }
+                    AssetDatabase.RemoveAssetBundleName(tempAs[iA], true);
+                }
+                AssetDatabase.RemoveUnusedAssetBundleNames();
+                EditorUtility.ClearProgressBar();
             }
             Model.ForceReloadData(this);
-            EditorUtility.ClearProgressBar();
         }
         private void RedundanciesAB(object context)
         {
