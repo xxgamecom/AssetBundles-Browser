@@ -465,7 +465,7 @@ namespace AssetBundleBrowser
                     for (int iP = 0; iP < tempAstPaths.Length; ++iP)
                     {
                         var tempPath = tempAstPaths[iP];
-                        if (EditorUtility.DisplayCancelableProgressBar("SetAssetBundleNameAndVariant " + tempABName, tempPath, ((float)iB / tempBuilds.Length) * ((float)iP / tempAstPaths.Length)))
+                        if (EditorUtility.DisplayCancelableProgressBar(string.Format("[{0}] ({1}/{2})", tempABName, iB, tempBuilds.Length), tempPath, ((float)iB / tempBuilds.Length) * ((float)iP / tempAstPaths.Length)))
                             goto Finally;
                         try
                         {
