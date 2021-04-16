@@ -39,6 +39,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             if (assetPath.EndsWith(".unity")) return typeof(SceneAsset);
             if (assetPath.EndsWith(".prefab")) return typeof(GameObject);
             if (assetPath.EndsWith(".shader")) return typeof(Shader);
+            if (assetPath.EndsWith(".anim")) return typeof(AnimationClip);
 
             return AssetDatabase.GetMainAssetTypeAtPath(assetPath);
         }
