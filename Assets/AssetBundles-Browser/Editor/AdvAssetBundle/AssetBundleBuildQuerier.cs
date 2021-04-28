@@ -168,6 +168,14 @@ namespace AssetBundleBrowser.AdvAssetBundle
                 tempABInfos.Add(new AssetBundleBuild() { assetBundleName = tempKvp.Key, assetNames = tempKvp.Value.OrderBy(a => a).ToArray() });
             }
 
+            //make sure assetbundle name is lower str;
+            for (int iB = 0; iB < tempABInfos.Count; ++iB)
+            {
+                var tempBuild = tempABInfos[iB];
+                tempBuild.assetBundleName = tempBuild.assetBundleName.ToLower();
+                tempABInfos[iB] = tempBuild;
+            }
+
             return tempABInfos.OrderBy(b => b.assetBundleName).ToArray();
         }
         #endregion
