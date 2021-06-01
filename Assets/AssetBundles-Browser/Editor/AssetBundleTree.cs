@@ -506,7 +506,7 @@ namespace AssetBundleBrowser
                     {
                         var tempPath = tempAstPaths[iP];
                         EditorUtility.DisplayProgressBar(string.Format("RemoveAssetBundleName({0}/{1})", iA, tempAs.Length), tempAs[iA], ((float)iA / tempAs.Length) * ((float)iP / tempAstPaths.Length));
-                        MiscUtils.SetAssetBundleNameAndVariant_UseFileIO(tempPath, string.Empty, string.Empty);
+                        try { MiscUtils.SetAssetBundleNameAndVariant_UseFileIO(tempPath, string.Empty, string.Empty); } catch { }
                     }
                     AssetDatabase.RemoveAssetBundleName(tempAs[iA], true);
                 }
