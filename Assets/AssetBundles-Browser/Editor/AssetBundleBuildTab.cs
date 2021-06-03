@@ -210,7 +210,7 @@ namespace AssetBundleBrowser
                 EditorGUILayout.Space();
                 GUILayout.BeginHorizontal();
                 var newPath = EditorGUILayout.TextField("Output Path", m_UserData.m_OutputPath);
-                if (!System.String.IsNullOrEmpty(newPath) && newPath != m_UserData.m_OutputPath)
+                if (!string.IsNullOrEmpty(newPath) && newPath != m_UserData.m_OutputPath)
                 {
                     m_UserData.m_UseDefaultPath = false;
                     m_UserData.m_OutputPath = newPath;
@@ -404,14 +404,19 @@ namespace AssetBundleBrowser
                 m_InspectTab.RefreshBundles();
             };
 
-            AssetBundleModel.Model.DataSource.BuildAssetBundles(buildInfo);
-            if (m_ClearManifest.state)
-                MiscUtils.ClearManifestByPath(m_UserData.m_OutputPath);
+            var tempRet = AssetBundleModel.Model.DataSource.BuildAssetBundles(buildInfo);
+            if (tempRet)
+            {
+                if (m_ClearManifest.state)
+                    MiscUtils.ClearManifestByPath(m_UserData.m_OutputPath);
 
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                if (m_CopyToStreaming.state)
+                    DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
 
-            if (m_CopyToStreaming.state)
-                DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            }
+
+            AssetBundleBrowserMain.instance.ShowNotification(new GUIContent(tempRet ? "BuildAssetBundle Finished." : "BuildAssetBundle failed."));
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName)
