@@ -348,33 +348,36 @@ namespace AssetBundleBrowser
                     Debug.LogError("AssetBundle Build: No valid output path for build.");
                     return;
                 }
+            }
 
-                if (m_ForceRebuild.state)
+            if (m_ForceRebuild.state)
+            {
+                string message = "Do you want to delete all files in the directory " + m_UserData.m_OutputPath;
+                if (m_CopyToStreaming.state)
+                    message += " and " + m_streamingPath;
+                message += "?";
+                if (EditorUtility.DisplayDialog("File delete confirmation", message, "Yes", "No"))
                 {
-                    string message = "Do you want to delete all files in the directory " + m_UserData.m_OutputPath;
-                    if (m_CopyToStreaming.state)
-                        message += " and " + m_streamingPath;
-                    message += "?";
-                    if (EditorUtility.DisplayDialog("File delete confirmation", message, "Yes", "No"))
+                    try
                     {
-                        try
-                        {
-                            if (Directory.Exists(m_UserData.m_OutputPath))
-                                Directory.Delete(m_UserData.m_OutputPath, true);
+                        if (Directory.Exists(m_UserData.m_OutputPath))
+                            Directory.Delete(m_UserData.m_OutputPath, true);
 
-                            if (m_CopyToStreaming.state)
-                                if (Directory.Exists(m_streamingPath))
-                                    Directory.Delete(m_streamingPath, true);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogException(e);
-                        }
+                        if (m_CopyToStreaming.state)
+                            if (Directory.Exists(m_streamingPath))
+                                Directory.Delete(m_streamingPath, true);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
                     }
                 }
-                if (!Directory.Exists(m_UserData.m_OutputPath))
-                    Directory.CreateDirectory(m_UserData.m_OutputPath);
             }
+
+            if (!Directory.Exists(m_UserData.m_OutputPath))
+                Directory.CreateDirectory(m_UserData.m_OutputPath);
+
+            EditorUtility.DisplayProgressBar("Build AssetBundle", "prepare...", 0);
 
             BuildAssetBundleOptions opt = BuildAssetBundleOptions.None;
 
@@ -391,32 +394,57 @@ namespace AssetBundleBrowser
                 }
             }
 
-            ABBuildInfo buildInfo = new ABBuildInfo();
-
-            buildInfo.outputDirectory = m_UserData.m_OutputPath;
-            buildInfo.options = opt;
-            buildInfo.buildTarget = (BuildTarget)m_UserData.m_BuildTarget;
-            buildInfo.onBuild = (assetBundleName) =>
+            var tempBuildRet = false;
+            try
             {
-                if (m_InspectTab == null)
-                    return;
-                m_InspectTab.AddBundleFolder(buildInfo.outputDirectory);
-                m_InspectTab.RefreshBundles();
-            };
+                var buildInfo = new ABBuildInfo()
+                {
+                    outputDirectory = m_UserData.m_OutputPath,
+                    options = opt,
+                    buildTarget = (BuildTarget)m_UserData.m_BuildTarget,
+                };
+                buildInfo.onBuild = (assetBundleName) =>
+                {
+                    if (m_InspectTab == null) return;
+                    m_InspectTab.AddBundleFolder(buildInfo.outputDirectory);
+                    m_InspectTab.RefreshBundles();
+                };
 
-            var tempRet = AssetBundleModel.Model.DataSource.BuildAssetBundles(buildInfo);
-            if (tempRet)
+                EditorUtility.DisplayProgressBar("Build AssetBundle", "BuildAssetBundles ...", 0.1f);
+
+                tempBuildRet = AssetBundleModel.Model.DataSource.BuildAssetBundles(buildInfo);
+
+                EditorUtility.DisplayProgressBar("Build AssetBundle", "BuildAssetBundles ...", 0.6f);
+
+                if (tempBuildRet)
+                {
+                    if (m_ClearManifest.state)
+                    {
+                        EditorUtility.DisplayProgressBar("Build AssetBundle", "ClearManifest ...", 0.7f);
+                        MiscUtils.ClearManifestByPath(m_UserData.m_OutputPath);
+                    }
+
+                    EditorUtility.DisplayProgressBar("Build AssetBundle", "Refresh  AssetDatabase...", 0.8f);
+                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+                    if (m_CopyToStreaming.state)
+                    {
+                        EditorUtility.DisplayProgressBar("Build AssetBundle", "Copy to Streaming Path...", 0.9f);
+                        DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
+                    }
+                }
+
+            }
+            catch (System.Exception e)
             {
-                if (m_ClearManifest.state)
-                    MiscUtils.ClearManifestByPath(m_UserData.m_OutputPath);
-
-                if (m_CopyToStreaming.state)
-                    DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
-
-                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                Debug.LogException(e);
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
 
-            AssetBundleBrowserMain.instance.ShowNotification(new GUIContent(tempRet ? "BuildAssetBundle Finished." : "BuildAssetBundle failed."));
+            AssetBundleBrowserMain.instance.ShowNotification(new GUIContent(tempBuildRet ? "BuildAssetBundle Finished." : "BuildAssetBundle failed."));
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName)
