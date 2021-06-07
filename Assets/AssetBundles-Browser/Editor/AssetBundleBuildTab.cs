@@ -352,24 +352,47 @@ namespace AssetBundleBrowser
 
             if (m_ForceRebuild.state)
             {
-                string message = "Do you want to delete all files in the directory " + m_UserData.m_OutputPath;
-                if (m_CopyToStreaming.state)
-                    message += " and " + m_streamingPath;
-                message += "?";
-                if (EditorUtility.DisplayDialog("File delete confirmation", message, "Yes", "No"))
-                {
-                    try
-                    {
-                        if (Directory.Exists(m_UserData.m_OutputPath))
-                            Directory.Delete(m_UserData.m_OutputPath, true);
+                var tempOutputClear = Directory.Exists(m_UserData.m_OutputPath) ? m_UserData.m_OutputPath : string.Empty;
+                var tempStreamClear = m_CopyToStreaming.state && Directory.Exists(m_streamingPath) ? m_UserData.m_OutputPath : string.Empty;
 
-                        if (m_CopyToStreaming.state)
-                            if (Directory.Exists(m_streamingPath))
-                                Directory.Delete(m_streamingPath, true);
-                    }
-                    catch (System.Exception e)
+                var tempSkip = false;
+                var message = "Do you want to delete all files in the directory ";
+                if (!string.IsNullOrEmpty(tempOutputClear))
+                {
+                    message += m_UserData.m_OutputPath;
+
+                    if (m_CopyToStreaming.state && !string.IsNullOrEmpty(tempStreamClear))
                     {
-                        Debug.LogException(e);
+                        message += " and " + m_streamingPath;
+                    }
+                }
+                else if (m_CopyToStreaming.state && !string.IsNullOrEmpty(tempStreamClear))
+                {
+                    message += m_streamingPath;
+                }
+                else
+                {
+                    tempSkip = true;
+                }
+
+                if (!tempSkip)
+                {
+                    message += "?";
+                    if (EditorUtility.DisplayDialog("File delete confirmation", message, "Yes", "No"))
+                    {
+                        try
+                        {
+                            if (Directory.Exists(m_UserData.m_OutputPath))
+                                Directory.Delete(m_UserData.m_OutputPath, true);
+
+                            if (m_CopyToStreaming.state)
+                                if (Directory.Exists(m_streamingPath))
+                                    Directory.Delete(m_streamingPath, true);
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogException(e);
+                        }
                     }
                 }
             }
@@ -410,8 +433,11 @@ namespace AssetBundleBrowser
                     m_InspectTab.RefreshBundles();
                 };
 
-                EditorUtility.DisplayProgressBar("Build AssetBundle", "BuildAssetBundles ...", 0.1f);
+                EditorUtility.DisplayProgressBar("Build AssetBundle", "Clear Inspector Selection...", 0.1f);
+                Selection.activeObject = null;
+                AssetBundleBrowserMain.instance.m_InspectTab.ClearData();
 
+                EditorUtility.DisplayProgressBar("Build AssetBundle", "BuildAssetBundles ...", 0.2f);
                 tempBuildRet = AssetBundleModel.Model.DataSource.BuildAssetBundles(buildInfo);
 
                 EditorUtility.DisplayProgressBar("Build AssetBundle", "BuildAssetBundles ...", 0.6f);
@@ -424,16 +450,15 @@ namespace AssetBundleBrowser
                         MiscUtils.ClearManifestByPath(m_UserData.m_OutputPath);
                     }
 
-                    EditorUtility.DisplayProgressBar("Build AssetBundle", "Refresh  AssetDatabase...", 0.8f);
-                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
                     if (m_CopyToStreaming.state)
                     {
-                        EditorUtility.DisplayProgressBar("Build AssetBundle", "Copy to Streaming Path...", 0.9f);
+                        EditorUtility.DisplayProgressBar("Build AssetBundle", "Copy to Streaming Path...", 0.8f);
                         DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
                     }
                 }
 
+                EditorUtility.DisplayProgressBar("Build AssetBundle", "Refresh  AssetDatabase...", 0.9f);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             }
             catch (System.Exception e)
             {
