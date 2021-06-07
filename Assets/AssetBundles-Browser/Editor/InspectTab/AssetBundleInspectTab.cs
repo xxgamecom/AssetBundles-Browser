@@ -207,7 +207,7 @@ namespace AssetBundleBrowser
             m_Data.AddFolder(folderPath);
         }
 
-        private void ClearData()
+        internal void ClearData()
         {
             m_SingleInspector.SetBundle(null);
 
