@@ -1,9 +1,7 @@
 {
-    "name": "Unity.AssetBundleBrowser.Editor",
+    "name": "7zip",
     "rootNamespace": "",
-    "references": [
-        "GUID:682fc33a7aeeafa498dbe4b1401e19fd"
-    ],
+    "references": [],
     "includePlatforms": [
         "Editor"
     ],
