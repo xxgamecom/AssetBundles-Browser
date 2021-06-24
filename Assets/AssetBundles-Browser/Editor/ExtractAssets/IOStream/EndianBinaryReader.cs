@@ -117,6 +117,11 @@ namespace AssetBundleBrowser.ExtractAssets
             }
             return base.ReadDouble();
         }
+
+        public long Seek(long offset, SeekOrigin origin)
+        {
+            return BaseStream.Seek(offset, origin);
+        }
         #endregion
     }
 }

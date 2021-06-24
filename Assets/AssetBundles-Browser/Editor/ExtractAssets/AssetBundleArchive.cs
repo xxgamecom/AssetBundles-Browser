@@ -31,9 +31,18 @@ namespace AssetBundleBrowser.ExtractAssets
             var tempBinaryStream = new EndianBinaryReader(tempStream);
             var tempStorage = new ArchiveStorageHeader(tempBinaryStream);
             Debug.LogError(tempStorage.HeaderInfo);
-            Debug.LogError(tempStorage.HeaderInfo.CheckCompressionSupported(out var temptype));
-            Debug.LogError(tempStorage.m_BlocksInfo.Length);
-            Debug.LogError(tempStorage.m_DirectoryInfo.Length);
+            Debug.LogError(string.Join(",", tempStorage.BlocksInfo));
+            Debug.LogError(string.Join(",", tempStorage.DirectoryInfo));
+            foreach (var item in tempStorage.DirectoryInfo)
+            {
+                if (!item.IsSerializedFile()) continue;
+
+                tempBinaryStream.Seek(item.offset, SeekOrigin.Current);
+
+
+
+
+            }
         }
 
     }

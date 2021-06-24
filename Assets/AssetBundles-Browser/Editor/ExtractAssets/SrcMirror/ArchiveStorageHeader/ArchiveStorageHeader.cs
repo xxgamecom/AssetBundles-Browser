@@ -2,16 +2,24 @@ using System;
 using System.IO;
 using UnityEngine;
 using SevenZip;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
+    /// <summary>
+    /// Header definitions of the ArchiveStorage
+    /// </summary>
     public partial class ArchiveStorageHeader
     {
         #region [Enum]
         public enum ArchiveFlags : int
         {
             kArchiveCompressionTypeMask = (1 << 6) - 1,
-            kArchiveBlocksAndDirectoryInfoCombined = 1 << 6,    //< Block is streamed.
+            /// <summary>
+            /// Block is streamed.
+            /// </summary>
+            kArchiveBlocksAndDirectoryInfoCombined = 1 << 6,
             kArchiveBlocksInfoAtTheEnd = 1 << 7,
             kArchiveOldWebPluginCompatibility = 1 << 8,
         }
@@ -19,8 +27,14 @@ namespace AssetBundleBrowser.ExtractAssets
 
         #region [Fields]
         public Header HeaderInfo;
-        public StorageBlock[] m_BlocksInfo;
-        public Node[] m_DirectoryInfo;
+        /// <summary>
+        /// Information about compressed data blocks
+        /// </summary>
+        public List<StorageBlock> BlocksInfo;
+        /// <summary>
+        /// Files mapping information
+        /// </summary>
+        public List<Node> DirectoryInfo;
         #endregion
 
         #region [Construct]
@@ -36,12 +50,13 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [Business]
-        protected virtual void Parse(EndianBinaryReader varReader)
+        protected virtual long Parse(EndianBinaryReader varReader)
         {
             HeaderInfo = Header.Parse(varReader);
+            return varReader.Position;
         }
 
-        private void ReadBlocksInfoAndDirectory(EndianBinaryReader reader)
+        private long ReadBlocksInfoAndDirectory(EndianBinaryReader reader)
         {
             byte[] blocksInfoBytes;
             if (HeaderInfo.version >= 7)
@@ -61,11 +76,7 @@ namespace AssetBundleBrowser.ExtractAssets
             }
             var blocksInfoCompressedStream = new MemoryStream(blocksInfoBytes);
             MemoryStream blocksInfoUncompresseddStream;
-            if (!HeaderInfo.CheckCompressionSupported(out var tempCompressType))
-            {
-                throw new NotSupportedException();
-            }
-            switch (tempCompressType)
+            switch (HeaderInfo.GetBlocksInfoCompressionType())
             {
                 default: //None
                     {
@@ -96,30 +107,34 @@ namespace AssetBundleBrowser.ExtractAssets
             {
                 var uncompressedDataHash = blocksInfoReader.ReadBytes(16);
                 var blocksInfoCount = blocksInfoReader.ReadInt32();
-                m_BlocksInfo = new StorageBlock[blocksInfoCount];
+                BlocksInfo = new List<StorageBlock>(blocksInfoCount);
                 for (int i = 0; i < blocksInfoCount; i++)
                 {
-                    m_BlocksInfo[i] = new StorageBlock
+                    var tempBlock = new StorageBlock
                     {
                         uncompressedSize = blocksInfoReader.ReadUInt32(),
                         compressedSize = blocksInfoReader.ReadUInt32(),
                         flags = blocksInfoReader.ReadUInt16()
                     };
+                    BlocksInfo.Add(tempBlock);
                 }
 
                 var nodesCount = blocksInfoReader.ReadInt32();
-                m_DirectoryInfo = new Node[nodesCount];
+                DirectoryInfo = new List<Node>(nodesCount);
                 for (int i = 0; i < nodesCount; i++)
                 {
-                    m_DirectoryInfo[i] = new Node
+                    var tempDirInfo = new Node
                     {
                         offset = blocksInfoReader.ReadInt64(),
                         size = blocksInfoReader.ReadInt64(),
                         flags = blocksInfoReader.ReadUInt32(),
                         path = blocksInfoReader.ReadStringToNull(),
                     };
+                    DirectoryInfo.Add(tempDirInfo);
                 }
             }
+
+            return reader.Position;
         }
         #endregion
     }

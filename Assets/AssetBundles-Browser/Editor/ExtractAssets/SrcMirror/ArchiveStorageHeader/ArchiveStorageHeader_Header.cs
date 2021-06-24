@@ -1,10 +1,18 @@
 using System;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
     public partial class ArchiveStorageHeader
     {
+        /// <summary>
+        /// Uncompressed archive file header (~46bytes).
+        /// There might have the following layouts:
+        /// header [ blocks directory ] [ data ] - Unity3d/UnityArchive
+        /// header[data][blocks directory] - Unity3d/UnityArchive
+        /// header blocks[directory data] - UnityRaw/UnityWeb - solid compression
+        /// Directory lives inside the data blocks(compressed or not)
+        /// </summary>
         public class Header
         {
             #region [Fields]
@@ -39,35 +47,44 @@ namespace AssetBundleBrowser.ExtractAssets
 
             public override string ToString()
             {
-                return $"signature:[{signature}]version:[{version}]unityVersion:[{unityVersion}]unityRevision:[{unityRevision}]" +
-                    $"size:[{size}]compressedBlocksInfoSize:[{compressedBlocksInfoSize}]uncompressedBlocksInfoSize:[{uncompressedBlocksInfoSize}]" +
-                    $"flags:[{flags}]";
+                var tempFlagStrs = new List<string>();
+                foreach (var item in Enum.GetValues(typeof(ArchiveFlags)))
+                {
+                    var tempFlag = (ArchiveFlags)item;
+                    if ((flags & (uint)tempFlag) == 0) continue;
+                    tempFlagStrs.Add(tempFlag.ToString());
+                }
+                if (tempFlagStrs.Count == 0) tempFlagStrs.Add(flags.ToString());
+
+                return $"signature:[{signature}] version:[{version}] unityVersion:[{unityVersion}] unityRevision:[{unityRevision}]" +
+                    $" size:[{size}] compressedBlocksInfoSize:[{compressedBlocksInfoSize}] uncompressedBlocksInfoSize:[{uncompressedBlocksInfoSize}]" +
+                    $" flags:[{string.Join(" | ", tempFlagStrs)}]";
             }
 
-            public bool CheckCompressionSupported(out Compression.CompressionType varCompressType)
+            public Compression.CompressionType GetBlocksInfoCompressionType()
             {
-                varCompressType = Compression.CompressionType.kCompressionCount;
                 var tempTypeVal = (int)(flags & (int)ArchiveFlags.kArchiveCompressionTypeMask);
                 if (!Enum.IsDefined(typeof(Compression.CompressionType), tempTypeVal))
                 {
-                    Debug.LogError($"[{tempTypeVal}] NotIsDefined CompressionType.");
-                    return false;
+                    throw new NotSupportedException($"[{tempTypeVal}] NotIsDefined CompressionType.");
                 }
-                varCompressType = (Compression.CompressionType)tempTypeVal;
-                Debug.Log($"CheckCompressionSupported:[{varCompressType}]");
-                switch (varCompressType)
-                {
-                    case Compression.CompressionType.kCompressionNone:
-                    case Compression.CompressionType.kCompressionLzma:
-                    case Compression.CompressionType.kCompressionLz4:
-                    case Compression.CompressionType.kCompressionLz4HC:
-                        return true;
-                    default:
-                        return false;
-                }
+                return (Compression.CompressionType)tempTypeVal;
+            }
+            public void SetBlocksInfoCompressionType(uint compression)
+            {
+                flags = (flags & ~(uint)ArchiveFlags.kArchiveCompressionTypeMask) | (compression & (uint)ArchiveFlags.kArchiveCompressionTypeMask);
+            }
+            public bool HasBlocksAndDirectoryInfoCombined() => (flags & (uint)ArchiveFlags.kArchiveBlocksAndDirectoryInfoCombined) != 0;
+            public void SetBlocksAndDirectoryInfoCombined(bool v)
+            {
+                flags = (flags & ~(uint)ArchiveFlags.kArchiveBlocksAndDirectoryInfoCombined) | (v ? (uint)ArchiveFlags.kArchiveBlocksAndDirectoryInfoCombined : 0);
+            }
+            public bool HasBlocksInfoAtTheEnd() => (flags & (uint)ArchiveFlags.kArchiveBlocksInfoAtTheEnd) != 0;
+            public void SetBlocksInfoAtTheEnd(bool v)
+            {
+                flags = (flags & ~(uint)ArchiveFlags.kArchiveBlocksInfoAtTheEnd) | (v ? (uint)ArchiveFlags.kArchiveBlocksInfoAtTheEnd : 0);
             }
             #endregion
         }
     }
 }
-

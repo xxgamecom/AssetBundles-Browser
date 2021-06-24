@@ -1,18 +1,16 @@
 {
     "name": "Unity.AssetBundleBrowser.Editor",
-    "rootNamespace": "",
     "references": [
-        "GUID:682fc33a7aeeafa498dbe4b1401e19fd"
+        "7zip"
     ],
+    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "defineConstraints": []
 }
