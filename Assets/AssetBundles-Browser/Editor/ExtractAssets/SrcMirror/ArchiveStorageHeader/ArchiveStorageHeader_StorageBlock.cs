@@ -16,6 +16,10 @@ namespace AssetBundleBrowser.ExtractAssets
             kStorageBlockStreamed = 1 << 6,
         }
 
+        /// <summary>
+        /// Data storage block.
+        /// Block can't be larger than 4GB. Streamed blocks should be are split to 4GB
+        /// </summary>
         public class StorageBlock
         {
             #region [Fields]
@@ -52,7 +56,9 @@ namespace AssetBundleBrowser.ExtractAssets
             {
                 flags = (ushort)((flags & ~(int)StorageBlockFlags.kStorageBlockStreamed) | (v ? (int)StorageBlockFlags.kStorageBlockStreamed : 0));
             }
+            #endregion
 
+            #region [Override]
             public override string ToString()
             {
                 var tempFlagStrs = new List<string>();
@@ -62,9 +68,8 @@ namespace AssetBundleBrowser.ExtractAssets
                     if ((flags & (ushort)tempFlag) == 0) continue;
                     tempFlagStrs.Add(tempFlag.ToString());
                 }
-                if (tempFlagStrs.Count == 0) tempFlagStrs.Add(flags.ToString());
 
-                return $"compressedSize:[{compressedSize}] uncompressedSize:[{uncompressedSize}] flags:[{string.Join(" | ", tempFlagStrs)}]";
+                return $"compressedSize:[{compressedSize}] uncompressedSize:[{uncompressedSize}] flags:[{flags}({string.Join(" | ", tempFlagStrs)})]";
             }
             #endregion
         }

@@ -16,14 +16,38 @@ namespace AssetBundleBrowser.ExtractAssets
         public class Header
         {
             #region [Fields]
+            /// <summary>
+            /// String signature of the archive file.
+            /// </summary>
             public string signature;
+            /// <summary>
+            /// Archive version.
+            /// </summary>
             public uint version;
-            public string unityVersion;
-            public string unityRevision;
+            /// <summary>
+            /// Unity bundle version.
+            /// </summary>
+            public string unityWebBundleVersion;
+            /// <summary>
+            /// The minimum required unity revision.
+            /// </summary>
+            public string unityWebMinimumRevision;
 
+            /// <summary>
+            /// Total size of the compressed archive (header + blocks/directory + data).
+            /// </summary>
             public long size;
+            /// <summary>
+            /// Size of the information about compressed blocks (and directory if it comes with blocks info)
+            /// </summary>
             public uint compressedBlocksInfoSize;
+            /// <summary>
+            /// Size of the information about uncompressed blocks (and directory if it comes with blocks info)
+            /// </summary>
             public uint uncompressedBlocksInfoSize;
+            /// <summary>
+            /// Archive flags (see ArchiveFlags enum)
+            /// </summary>
             public uint flags;
             #endregion
 
@@ -34,8 +58,8 @@ namespace AssetBundleBrowser.ExtractAssets
                 {
                     signature = varReader.ReadStringToNull(),
                     version = varReader.ReadUInt32(),
-                    unityVersion = varReader.ReadStringToNull(),
-                    unityRevision = varReader.ReadStringToNull(),
+                    unityWebBundleVersion = varReader.ReadStringToNull(),
+                    unityWebMinimumRevision = varReader.ReadStringToNull(),
 
                     size = varReader.ReadInt64(),
                     compressedBlocksInfoSize = varReader.ReadUInt32(),
@@ -43,22 +67,6 @@ namespace AssetBundleBrowser.ExtractAssets
                     flags = varReader.ReadUInt32(),
                 };
                 return tempHead;
-            }
-
-            public override string ToString()
-            {
-                var tempFlagStrs = new List<string>();
-                foreach (var item in Enum.GetValues(typeof(ArchiveFlags)))
-                {
-                    var tempFlag = (ArchiveFlags)item;
-                    if ((flags & (uint)tempFlag) == 0) continue;
-                    tempFlagStrs.Add(tempFlag.ToString());
-                }
-                if (tempFlagStrs.Count == 0) tempFlagStrs.Add(flags.ToString());
-
-                return $"signature:[{signature}] version:[{version}] unityVersion:[{unityVersion}] unityRevision:[{unityRevision}]" +
-                    $" size:[{size}] compressedBlocksInfoSize:[{compressedBlocksInfoSize}] uncompressedBlocksInfoSize:[{uncompressedBlocksInfoSize}]" +
-                    $" flags:[{string.Join(" | ", tempFlagStrs)}]";
             }
 
             public Compression.CompressionType GetBlocksInfoCompressionType()
@@ -83,6 +91,23 @@ namespace AssetBundleBrowser.ExtractAssets
             public void SetBlocksInfoAtTheEnd(bool v)
             {
                 flags = (flags & ~(uint)ArchiveFlags.kArchiveBlocksInfoAtTheEnd) | (v ? (uint)ArchiveFlags.kArchiveBlocksInfoAtTheEnd : 0);
+            }
+            #endregion
+
+            #region [Override]
+            public override string ToString()
+            {
+                var tempFlagStrs = new List<string>();
+                foreach (var item in Enum.GetValues(typeof(ArchiveFlags)))
+                {
+                    var tempFlag = (ArchiveFlags)item;
+                    if ((flags & (uint)tempFlag) == 0) continue;
+                    tempFlagStrs.Add(tempFlag.ToString());
+                }
+
+                return $"signature:[{signature}] version:[{version}] unityWebBundleVersion:[{unityWebBundleVersion}] unityWebMinimumRevision:[{unityWebMinimumRevision}]" +
+                    $" size:[{size}] compressedBlocksInfoSize:[{compressedBlocksInfoSize}] uncompressedBlocksInfoSize:[{uncompressedBlocksInfoSize}]" +
+                    $" flags:[{flags}({string.Join(" | ", tempFlagStrs)})]";
             }
             #endregion
         }

@@ -132,19 +132,19 @@ namespace AssetBundleBrowser.AdvAssetBundle
             var tempPath = "E:/puffer_abdiff-Test/Debug_DynamicDownload/Res/AB";
             var tempPath_2 = "E:/puffer_abdiff-Test/Debug_DynamicDownload/Res/AB_2";
             Directory.CreateDirectory(tempPath_2);
-            var tempPatch = "E:/puffer_abdiff-Test/ArchiveResult/13aeb71d551955fcf58e7d6228165f57";
-            var tempRet = ABDiffPatch.PerformPatch(tempPatch, tempPath, tempPath_2);
-            Debug.LogError(tempRet);
+            //var tempPatch = "E:/puffer_abdiff-Test/PatchResult/13aeb71d551955fcf58e7d6228165f57";
+            //var tempRet = ABDiffPatch.PerformPatch(tempPatch, tempPath, tempPath_2);
+            //Debug.LogError(tempRet);
 
-            var tempError = ABDiffPatch.GetPatchFailedPathList();
-            if (tempError != null && tempError.Length != 0)
-            {
-                Debug.LogErrorFormat("[LocalResourcesABDiffUpdate] FailedPathList[{0}] - [{1}]", tempError.Length, string.Join(";", tempError));
-            }
-            else
-            {
-                Debug.LogError("[LocalResourcesABDiffUpdate] Finished without Failed.");
-            }
+            //var tempError = ABDiffPatch.GetPatchFailedPathList();
+            //if (tempError != null && tempError.Length != 0)
+            //{
+            //    Debug.LogErrorFormat("[LocalResourcesABDiffUpdate] FailedPathList[{0}] - [{1}]", tempError.Length, string.Join(";", tempError));
+            //}
+            //else
+            //{
+            //    Debug.LogError("[LocalResourcesABDiffUpdate] Finished without Failed.");
+            //}
         }
 
         #region [MeshInfo]

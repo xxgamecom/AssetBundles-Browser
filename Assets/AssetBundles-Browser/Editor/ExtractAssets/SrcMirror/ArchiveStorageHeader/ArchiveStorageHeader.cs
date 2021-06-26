@@ -40,7 +40,7 @@ namespace AssetBundleBrowser.ExtractAssets
         #region [Construct]
         public ArchiveStorageHeader(EndianBinaryReader varStream)
         {
-            Parse(varStream);
+            HeaderInfo = Header.Parse(varStream);
             ReadBlocksInfoAndDirectory(varStream);
         }
         #endregion
@@ -50,11 +50,6 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [Business]
-        protected virtual long Parse(EndianBinaryReader varReader)
-        {
-            HeaderInfo = Header.Parse(varReader);
-            return varReader.Position;
-        }
 
         private long ReadBlocksInfoAndDirectory(EndianBinaryReader reader)
         {
