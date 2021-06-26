@@ -41,6 +41,7 @@ namespace AssetBundleBrowser.ExtractAssets
 
                 var tempSF = new SerializedFile();
                 tempSF.Parse(tempBinaryStream);
+                Debug.LogError(tempSF);
 
             }
         }

@@ -18,7 +18,7 @@ namespace AssetBundleBrowser.ExtractAssets
 
             public uint MetadataSize;
             public uint FileSize;
-            public uint Version;
+            public SerializedFileFormatVersion Version;
             public uint DataOffset;
             public byte Endianess;
             public byte[] Reserved = new byte[3];
@@ -31,10 +31,10 @@ namespace AssetBundleBrowser.ExtractAssets
                 {
                     MetadataSize = varStream.ReadUInt32(),
                     FileSize = varStream.ReadUInt32(),
-                    Version = varStream.ReadUInt32(),
+                    Version = (SerializedFileFormatVersion)varStream.ReadUInt32(),
                 };
 
-                if (tempHeader.Version < (int)SerializedFileFormatVersion.kLargeFilesSupport)
+                if (tempHeader.Version < SerializedFileFormatVersion.kLargeFilesSupport)
                 {
                     tempHeader.DataOffset = varStream.ReadUInt32();
                     tempHeader.Endianess = varStream.ReadByte();
@@ -63,12 +63,7 @@ namespace AssetBundleBrowser.ExtractAssets
 
             public override string ToString()
             {
-                var tempVerStr = Version.ToString();
-                if (Enum.IsDefined(typeof(SerializedFileFormatVersion), Version))
-                {
-                    tempVerStr = ((SerializedFileFormatVersion)Version).ToString();
-                }
-                return $"MetadataSize:[{MetadataSize}] FileSize:[{FileSize}] Version:[{Version}({tempVerStr})] DataOffset:[{DataOffset}] Endianess:[{Endianess}] Reserved:[{string.Join("", Reserved)}]";
+                return $"MetadataSize:[{MetadataSize}] FileSize:[{FileSize}] Version:[{Version}] DataOffset:[{DataOffset}] Endianess:[{Endianess}] Reserved:[{string.Join("", Reserved)}]";
             }
             #endregion
         }

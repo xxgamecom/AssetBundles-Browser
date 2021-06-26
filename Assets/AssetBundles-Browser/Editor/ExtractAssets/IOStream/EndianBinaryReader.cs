@@ -5,9 +5,9 @@ using System.IO;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
-    public enum EndianType
+    public enum EndianType : int
     {
-        LittleEndian,
+        LittleEndian = 0,
         BigEndian
     }
 
