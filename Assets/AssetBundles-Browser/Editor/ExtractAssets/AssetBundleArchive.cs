@@ -38,7 +38,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 if (!item.IsSerializedFile()) continue;
 
                 tempBinaryStream.Seek(item.offset, SeekOrigin.Current);
-
+                
                 var tempSF = new SerializedFile();
                 tempSF.Parse(tempBinaryStream);
                 Debug.LogError(tempSF);

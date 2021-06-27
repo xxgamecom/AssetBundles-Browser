@@ -17,50 +17,60 @@ namespace AssetBundleBrowser.ExtractAssets
             public const int kHeaderSize_Ver8 = 12;
 
             public uint MetadataSize;
-            public uint FileSize;
+            public long FileSize;
             public SerializedFileFormatVersion Version;
-            public uint DataOffset;
+            public long DataOffset;
             public byte Endianess;
             public byte[] Reserved = new byte[3];
             #endregion
 
             #region [API]
-            public static SerializedFileHeader Parse(EndianBinaryReader varStream)
+            public void Parse(EndianBinaryReader varStream)
             {
-                var tempHeader = new SerializedFileHeader
-                {
-                    MetadataSize = varStream.ReadUInt32(),
-                    FileSize = varStream.ReadUInt32(),
-                    Version = (SerializedFileFormatVersion)varStream.ReadUInt32(),
-                };
+                MetadataSize = varStream.ReadUInt32();
+                FileSize = varStream.ReadUInt32();
+                Version = (SerializedFileFormatVersion)varStream.ReadUInt32();
 
-                if (tempHeader.Version < SerializedFileFormatVersion.kLargeFilesSupport)
                 {
-                    tempHeader.DataOffset = varStream.ReadUInt32();
-                    tempHeader.Endianess = varStream.ReadByte();
-                    tempHeader.Reserved = varStream.ReadBytes(tempHeader.Reserved.Length);
+                    DataOffset = varStream.ReadUInt32();
+
+                    Endianess = varStream.ReadByte();
+                    Reserved = varStream.ReadBytes(3);
+
+                    MetadataSize = varStream.ReadUInt32();
+                    FileSize = varStream.ReadInt64();
+                    DataOffset = varStream.ReadInt64();
+                    varStream.ReadInt64(); // unknown
                 }
-                else
-                {
-                    varStream.Seek(4, SeekOrigin.Current);
+                
+                //if (Version < SerializedFileFormatVersion.kLargeFilesSupport)
+                //{
+                //    DataOffset = varStream.ReadUInt32();
+                //    Endianess = varStream.ReadByte();
+                //    Reserved = varStream.ReadBytes(Reserved.Length);
+                //}
+                //else
+                //{
+                //    varStream.Seek(4, SeekOrigin.Current);
 
-                    varStream.Seek(4, SeekOrigin.Current);
-                    tempHeader.MetadataSize = varStream.ReadUInt32();
+                //    varStream.Seek(4, SeekOrigin.Current);
+                //    MetadataSize = varStream.ReadUInt32();
 
-                    varStream.Seek(4, SeekOrigin.Current);
-                    tempHeader.FileSize = varStream.ReadUInt32();
+                //    varStream.Seek(4, SeekOrigin.Current);
+                //    FileSize = varStream.ReadUInt32();
 
-                    varStream.Seek(4, SeekOrigin.Current);
-                    tempHeader.DataOffset = varStream.ReadUInt32();
+                //    varStream.Seek(4, SeekOrigin.Current);
+                //    DataOffset = varStream.ReadUInt32();
 
-                    varStream.Seek(4, SeekOrigin.Current);
-                    tempHeader.Endianess = varStream.ReadByte();
-                    tempHeader.Reserved = varStream.ReadBytes(tempHeader.Reserved.Length);
-                }
+                //    varStream.Seek(4, SeekOrigin.Current);
+                //    Endianess = varStream.ReadByte();
+                //    Reserved = varStream.ReadBytes(Reserved.Length);
+                //}
 
-                return tempHeader;
             }
+            #endregion
 
+            #region [Override]
             public override string ToString()
             {
                 return $"MetadataSize:[{MetadataSize}] FileSize:[{FileSize}] Version:[{Version}] DataOffset:[{DataOffset}] Endianess:[{Endianess}] Reserved:[{string.Join("", Reserved)}]";

@@ -58,7 +58,7 @@ namespace AssetBundleBrowser.ExtractAssets
         /// Serialization meta data (eg. to hide variables in the property editor)
         /// Children or their meta flags with their parents!
         /// </summary>
-        public uint m_MetaFlag;
+        public int m_MetaFlag;
 
         /// <summary>
         /// When node is private reference, this holds the 64bit "hash" of the TypeTreeShareableData of the refed type.
@@ -73,7 +73,7 @@ namespace AssetBundleBrowser.ExtractAssets
         public string m_Name;
         #endregion
 
-
+        #region [API]
         public void Parse(EndianBinaryReader varStream, SerializedFileFormatVersion varFormat)
         {
             m_Version = varStream.ReadUInt16();
@@ -83,12 +83,21 @@ namespace AssetBundleBrowser.ExtractAssets
             m_NameStrOffset = varStream.ReadUInt32();
             m_ByteSize = varStream.ReadInt32();
             m_Index = varStream.ReadInt32();
-            m_MetaFlag = varStream.ReadUInt32();
+            m_MetaFlag = varStream.ReadInt32();
             if (varFormat >= SerializedFileFormatVersion.kTypeTreeNodeWithTypeFlags)
             {
                 m_RefTypeHash = varStream.ReadUInt64();
             }
         }
+        #endregion
 
+        #region [Override]
+        public override string ToString()
+        {
+            return $"m_Version:[{m_Version}] m_Level:[{m_Level}] m_TypeFlags:[{m_TypeFlags}] m_TypeStrOffset:[{m_TypeStrOffset}]" +
+                $"m_NameStrOffset:[{m_NameStrOffset}] m_ByteSize:[{m_ByteSize}] m_Index:[{m_Index}] m_MetaFlag:[{m_MetaFlag}]" +
+                $"m_RefTypeHash:[{m_RefTypeHash}] m_Type:[{m_Type}] m_Name:[{m_Name}]";
+        }
+        #endregion
     }
 }

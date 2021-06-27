@@ -6,6 +6,7 @@ namespace AssetBundleBrowser.ExtractAssets
 {
     public class SerializedType
     {
+        #region [Fields]
         public PersistentTypeID classID;
         public bool IsStrippedType;
         public short ScriptTypeIndex = -1;
@@ -22,5 +23,41 @@ namespace AssetBundleBrowser.ExtractAssets
         public string m_KlassName;
         public string m_NameSpace;
         public string m_AsmName;
+        #endregion
+
+        #region [API]
+        public void Parse(EndianBinaryReader varStream, bool varEnableTypeTree, SerializedFileFormatVersion varFormat)
+        {
+            classID = (PersistentTypeID)varStream.ReadInt32();
+            IsStrippedType = varStream.ReadBoolean();
+            ScriptTypeIndex = varStream.ReadInt16();
+
+            if (classID == PersistentTypeID.MonoBehaviour)
+            {
+                m_ScriptID = varStream.ReadBytes(16);
+            }
+            m_OldTypeHash = varStream.ReadBytes(16);
+
+            if (varEnableTypeTree)
+            {
+                mTypeTree = new TypeTree();
+                mTypeTree.Parse(varStream, varFormat);
+
+                if (varFormat >= SerializedFileFormatVersion.kStoresTypeDependencies)
+                {
+                    m_TypeDependencies = varStream.ReadInt32Array();
+                }
+            }
+        }
+        #endregion
+
+        #region [Override]
+        public override string ToString()
+        {
+            return $"classID:[{classID}] IsStrippedType:[{IsStrippedType}] ScriptTypeIndex:[{ScriptTypeIndex}] mTypeTree:[{mTypeTree}] m_ScriptID:[{m_ScriptID}] " +
+                $"m_OldTypeHash:[{string.Join("", m_OldTypeHash)}] m_TypeDependencies:[{string.Join("", m_TypeDependencies)}]" +
+                $"m_KlassName:[{m_KlassName}] m_NameSpace:[{m_NameSpace}] m_AsmName:[{m_AsmName}]";
+        }
+        #endregion
     }
 }
