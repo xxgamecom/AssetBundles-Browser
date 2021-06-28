@@ -47,13 +47,13 @@ namespace AssetBundleBrowser.ExtractAssets
                 {
                     if (varRefType)
                     {
-                        m_TypeDependencies = varStream.ReadInt32Array();
-                    }
-                    else
-                    {
                         m_KlassName = varStream.ReadStringToNull();
                         m_NameSpace = varStream.ReadStringToNull();
                         m_AsmName = varStream.ReadStringToNull();
+                    }
+                    else
+                    {
+                        m_TypeDependencies = varStream.ReadInt32Array();
                     }
                 }
             }

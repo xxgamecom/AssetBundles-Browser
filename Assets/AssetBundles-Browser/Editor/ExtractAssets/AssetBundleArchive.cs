@@ -35,7 +35,6 @@ namespace AssetBundleBrowser.ExtractAssets
                 var tempReader = new EndianBinaryReader(item.Context);
                 var tempSF = new SerializedFile();
                 tempSF.Parse(tempReader);
-
             }
         }
 
