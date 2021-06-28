@@ -27,9 +27,13 @@ namespace AssetBundleBrowser.ExtractAssets
 
             public void Parse(EndianBinaryReader varStream)
             {
+                varStream.AlignStream();
                 m_PathID = varStream.ReadInt64();
 
                 byteStart = varStream.ReadInt64();
+
+                //varStream.Seek(4,System.IO.SeekOrigin.Current);
+
                 byteSize = varStream.ReadUInt32();
                 typeID = varStream.ReadInt32();
             }

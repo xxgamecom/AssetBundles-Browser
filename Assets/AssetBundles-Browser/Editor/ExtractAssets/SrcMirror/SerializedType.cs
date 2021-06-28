@@ -26,7 +26,7 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [API]
-        public void Parse(EndianBinaryReader varStream, bool varEnableTypeTree, SerializedFileFormatVersion varFormat)
+        public void Parse(EndianBinaryReader varStream, bool varEnableTypeTree, SerializedFileFormatVersion varFormat, bool varRefType = false)
         {
             classID = (PersistentTypeID)varStream.ReadInt32();
             IsStrippedType = varStream.ReadBoolean();
@@ -45,7 +45,16 @@ namespace AssetBundleBrowser.ExtractAssets
 
                 if (varFormat >= SerializedFileFormatVersion.kStoresTypeDependencies)
                 {
-                    m_TypeDependencies = varStream.ReadInt32Array();
+                    if (varRefType)
+                    {
+                        m_TypeDependencies = varStream.ReadInt32Array();
+                    }
+                    else
+                    {
+                        m_KlassName = varStream.ReadStringToNull();
+                        m_NameSpace = varStream.ReadStringToNull();
+                        m_AsmName = varStream.ReadStringToNull();
+                    }
                 }
             }
         }

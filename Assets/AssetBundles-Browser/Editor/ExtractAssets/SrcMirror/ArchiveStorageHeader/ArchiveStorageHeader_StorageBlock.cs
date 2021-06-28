@@ -38,6 +38,15 @@ namespace AssetBundleBrowser.ExtractAssets
             #endregion
 
             #region [API]
+            public StorageBlock Parse(EndianBinaryReader varStream)
+            {
+                uncompressedSize = varStream.ReadUInt32();
+                compressedSize = varStream.ReadUInt32();
+                flags = varStream.ReadUInt16();
+                return this;
+            }
+
+
             public Compression.CompressionType GetCompressionType()
             {
                 var tempTypeVal = flags & (int)StorageBlockFlags.kStorageBlockCompressionTypeMask;

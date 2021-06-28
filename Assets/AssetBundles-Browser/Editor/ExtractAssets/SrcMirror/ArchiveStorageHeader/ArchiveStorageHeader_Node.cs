@@ -1,7 +1,6 @@
 using System;
-using System.Collections;
+using System.IO;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
@@ -46,9 +45,25 @@ namespace AssetBundleBrowser.ExtractAssets
             /// Node path.
             /// </summary>
             public string path;
+
+            public Stream Context;
             #endregion
 
             #region [API]
+            public void Parse(EndianBinaryReader varStream)
+            {
+                offset = varStream.ReadInt64();
+                size = varStream.ReadInt64();
+                flags = varStream.ReadUInt32();
+                path = varStream.ReadStringToNull();
+
+                //TODO - 大于2G的情况;
+                //Context = new MemoryStream((int)size);
+                //varStream.Position = offset;
+                //varStream.BaseStream.CopyTo(Context, size);
+                //Context.Position = 0;
+            }
+
             public bool IsDirectory() => (flags & (int)NodeFlags.kNodeDirectory) != 0;
             public bool IsSerializedFile() => (flags & (int)NodeFlags.kNodeSerializedFile) != 0;
 

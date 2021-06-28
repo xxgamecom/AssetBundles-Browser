@@ -35,6 +35,7 @@ namespace AssetBundleBrowser.ExtractAssets
         /// Files mapping information
         /// </summary>
         public List<Node> DirectoryInfo;
+
         #endregion
 
         #region [Construct]
@@ -42,6 +43,13 @@ namespace AssetBundleBrowser.ExtractAssets
         {
             HeaderInfo = Header.Parse(varStream);
             ReadBlocksInfoAndDirectory(varStream);
+            var tempUnCompressSize = BlocksInfo.Sum(bi => bi.uncompressedSize);
+            //TODO - 大于2G的情况;
+            using (var tempBlockStream = new MemoryStream((int)tempUnCompressSize))
+            {
+                ReadBlocks(varStream, tempBlockStream);
+                ReadFiles(tempBlockStream);
+            }
         }
         #endregion
 
@@ -105,12 +113,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 BlocksInfo = new List<StorageBlock>(blocksInfoCount);
                 for (int i = 0; i < blocksInfoCount; i++)
                 {
-                    var tempBlock = new StorageBlock
-                    {
-                        uncompressedSize = blocksInfoReader.ReadUInt32(),
-                        compressedSize = blocksInfoReader.ReadUInt32(),
-                        flags = blocksInfoReader.ReadUInt16()
-                    };
+                    var tempBlock = new StorageBlock().Parse(blocksInfoReader);
                     BlocksInfo.Add(tempBlock);
                 }
 
@@ -118,18 +121,54 @@ namespace AssetBundleBrowser.ExtractAssets
                 DirectoryInfo = new List<Node>(nodesCount);
                 for (int i = 0; i < nodesCount; i++)
                 {
-                    var tempDirInfo = new Node
-                    {
-                        offset = blocksInfoReader.ReadInt64(),
-                        size = blocksInfoReader.ReadInt64(),
-                        flags = blocksInfoReader.ReadUInt32(),
-                        path = blocksInfoReader.ReadStringToNull(),
-                    };
+                    var tempDirInfo = new Node();
+                    tempDirInfo.Parse(blocksInfoReader);
                     DirectoryInfo.Add(tempDirInfo);
                 }
             }
 
             return reader.Position;
+        }
+        private void ReadBlocks(EndianBinaryReader varReader, Stream varBlocksStream)
+        {
+            foreach (var blockInfo in BlocksInfo)
+            {
+                switch (blockInfo.GetCompressionType())
+                {
+                    default: //None
+                        {
+                            varReader.BaseStream.CopyTo(varBlocksStream, blockInfo.compressedSize);
+                            break;
+                        }
+                    case Compression.CompressionType.kCompressionLzma: //LZMA
+                        {
+                            SevenZipHelper.StreamDecompress(varReader.BaseStream, varBlocksStream, blockInfo.compressedSize, blockInfo.uncompressedSize);
+                            break;
+                        }
+                    case Compression.CompressionType.kCompressionLz4: //LZ4
+                    case Compression.CompressionType.kCompressionLz4HC: //LZ4HC
+                        {
+                            var compressedStream = new MemoryStream(varReader.ReadBytes((int)blockInfo.compressedSize));
+                            using (var lz4Stream = new Lz4DecoderStream(compressedStream))
+                            {
+                                lz4Stream.CopyTo(varBlocksStream, blockInfo.uncompressedSize);
+                            }
+                            break;
+                        }
+                }
+            }
+            varBlocksStream.Position = 0;
+        }
+        public void ReadFiles(Stream blocksStream)
+        {
+            for (int i = 0; i < DirectoryInfo.Count; ++i)
+            {
+                var node = DirectoryInfo[i];
+                node.Context = new MemoryStream((int)node.size);
+                blocksStream.Position = node.offset;
+                blocksStream.CopyTo(node.Context, node.size);
+                node.Context.Position = 0;
+            }
         }
         #endregion
     }

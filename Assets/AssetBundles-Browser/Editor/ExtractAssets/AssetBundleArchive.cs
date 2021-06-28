@@ -1,11 +1,6 @@
-using System;
-using System.Text;
-using UnityEngine;
-using System.Linq;
-using UnityEditor;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
+using UnityEditor;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
@@ -37,11 +32,9 @@ namespace AssetBundleBrowser.ExtractAssets
             {
                 if (!item.IsSerializedFile()) continue;
 
-                tempBinaryStream.Seek(item.offset, SeekOrigin.Current);
-                
+                var tempReader = new EndianBinaryReader(item.Context);
                 var tempSF = new SerializedFile();
-                tempSF.Parse(tempBinaryStream);
-                Debug.LogError(tempSF);
+                tempSF.Parse(tempReader);
 
             }
         }

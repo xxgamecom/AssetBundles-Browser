@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.IO;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
     public partial class SerializedFile
     {
+        public enum Alignment : int { kSectionAlignment = 16, kMetadataAllocation = 4 << 10 };
+
         #region [Fields]
         public SerializedFileHeader Header;
 
@@ -20,6 +23,9 @@ namespace AssetBundleBrowser.ExtractAssets
         /// </summary>
         public Dictionary<long, ObjectInfo> ObjectMap;
         public List<LocalSerializedObjectIdentifier> ScriptTypes;
+        public List<FileIdentifier> FileIdentifiers;
+        public List<SerializedType> RefTypes;
+        public string userInformation;
         #endregion
 
         public void Parse(EndianBinaryReader varStream)
@@ -53,13 +59,10 @@ namespace AssetBundleBrowser.ExtractAssets
             ObjectMap = new Dictionary<long, ObjectInfo>(tempObjCount);
             for (int i = 0; i < tempObjCount; ++i)
             {
-                varStream.AlignStream();
-
+                Debug.Log(Header.Version);
                 var tempObjInfo = new ObjectInfo();
                 tempObjInfo.Parse(varStream);
 
-                var tempIdx = tempObjInfo.typeID;
-                var tempObjectType = Types[tempIdx];
                 ObjectMap.Add(tempObjInfo.m_PathID, tempObjInfo);
             }
 
@@ -70,6 +73,35 @@ namespace AssetBundleBrowser.ExtractAssets
                 var tempScriptTyps = new LocalSerializedObjectIdentifier();
                 tempScriptTyps.Parse(varStream);
                 ScriptTypes.Add(tempScriptTyps);
+            }
+
+            var tempExternalsCount = varStream.ReadInt32();
+            FileIdentifiers = new List<FileIdentifier>(tempExternalsCount);
+            for (int i = 0; i < tempExternalsCount; ++i)
+            {
+                var tempFileID = new FileIdentifier();
+                tempFileID.Parse(varStream);
+                FileIdentifiers.Add(tempFileID);
+            }
+
+            var tempRefTypesCount = varStream.ReadInt32();
+            RefTypes = new List<SerializedType>(tempRefTypesCount);
+            for (int i = 0; i < tempRefTypesCount; ++i)
+            {
+                var tempType = new SerializedType();
+                tempType.Parse(varStream, EnableTypeTree, Header.Version, true);
+                Types.Add(tempType);
+            }
+
+            userInformation = varStream.ReadStringToNull();
+
+            if (varStream.Position < (int)Alignment.kMetadataAllocation)
+            {
+                varStream.Seek((int)Alignment.kMetadataAllocation - varStream.Position, SeekOrigin.Current);
+            }
+            else
+            {
+                varStream.AlignStream((int)Alignment.kSectionAlignment);
             }
         }
 
