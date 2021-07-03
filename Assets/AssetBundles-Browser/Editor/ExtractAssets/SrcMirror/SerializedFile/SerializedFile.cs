@@ -59,7 +59,6 @@ namespace AssetBundleBrowser.ExtractAssets
             ObjectMap = new Dictionary<long, ObjectInfo>(tempObjCount);
             for (int i = 0; i < tempObjCount; ++i)
             {
-                Debug.Log(Header.Version);
                 var tempObjInfo = new ObjectInfo();
                 tempObjInfo.Parse(varStream);
 

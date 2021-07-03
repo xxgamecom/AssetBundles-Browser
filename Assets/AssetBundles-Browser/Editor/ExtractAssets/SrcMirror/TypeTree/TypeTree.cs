@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
@@ -20,8 +16,6 @@ namespace AssetBundleBrowser.ExtractAssets
             var tempNodeCount = varStream.ReadInt32();
             var tempStringBufferSize = varStream.ReadInt32();
 
-            var tempStart = varStream.Position;
-            
             Nodes = new List<TypeTreeNode>(tempNodeCount);
             for (int i = 0; i < tempNodeCount; ++i)
             {
@@ -29,7 +23,6 @@ namespace AssetBundleBrowser.ExtractAssets
                 tempNode.Parse(varStream, varFormat);
                 Nodes.Add(tempNode);
             }
-            //Debug.LogError((varStream.Position - tempStart) / tempNodeCount);
 
             m_StringBuffer = varStream.ReadBytes(tempStringBufferSize);
             using (var stringBufferReader = new BinaryReader(new MemoryStream(m_StringBuffer)))
@@ -37,27 +30,28 @@ namespace AssetBundleBrowser.ExtractAssets
                 for (int i = 0; i < tempNodeCount; ++i)
                 {
                     var m_Node = Nodes[i];
-                    m_Node.m_Type = ReadString(stringBufferReader, m_Node.m_TypeStrOffset);
-                    m_Node.m_Name = ReadString(stringBufferReader, m_Node.m_NameStrOffset);
+                    m_Node.m_Type = ReadCommonString(stringBufferReader, m_Node.m_TypeStrOffset);
+                    m_Node.m_Name = ReadCommonString(stringBufferReader, m_Node.m_NameStrOffset);
                 }
             }
+        }
+        #endregion
 
-            string ReadString(BinaryReader stringBufferReader, uint value)
+        #region [Business]
+        private string ReadCommonString(BinaryReader stringBufferReader, uint value)
+        {
+            var isOffset = (value & 0x80000000) == 0;
+            if (isOffset)
             {
-                var isOffset = (value & 0x80000000) == 0;
-                if (isOffset)
-                {
-                    stringBufferReader.BaseStream.Position = value;
-                    return stringBufferReader.ReadStringToNull();
-                }
-                var offset = value & 0x7FFFFFFF;
-                if (CommonString.StringBuffer.TryGetValue(offset, out var str))
-                {
-                    return str;
-                }
-                return offset.ToString();
+                stringBufferReader.BaseStream.Position = value;
+                return stringBufferReader.ReadStringToNull();
             }
-
+            var offset = value & 0x7FFFFFFF;
+            if (CommonString.StringBuffer.TryGetValue(offset, out var str))
+            {
+                return str;
+            }
+            return offset.ToString();
         }
         #endregion
 

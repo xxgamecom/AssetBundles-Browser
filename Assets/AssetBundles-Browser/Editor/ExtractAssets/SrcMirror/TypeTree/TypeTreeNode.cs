@@ -13,7 +13,7 @@ namespace AssetBundleBrowser.ExtractAssets
     public class TypeTreeNode
     {
         #region [Enum]
-        public enum ETypeFlags
+        public enum ETypeFlags : int
         {
             kFlagNone = 0,
             kFlagIsArray = (1 << 0),
@@ -89,6 +89,11 @@ namespace AssetBundleBrowser.ExtractAssets
                 m_RefTypeHash = varStream.ReadUInt64();
             }
         }
+
+        public bool IsArray() => (m_TypeFlags & (int)ETypeFlags.kFlagIsArray) != 0;
+        public bool IsManagedReference() => (m_TypeFlags & (int)ETypeFlags.kFlagIsManagedReference) != 0;
+        public bool IsManagedReferenceRegistry() => (m_TypeFlags & (int)ETypeFlags.kFlagIsManagedReferenceRegistry) != 0;
+        public bool IsArrayOfRefs() => (m_TypeFlags & (int)ETypeFlags.kFlagIsArrayOfRefs) != 0;
         #endregion
 
         #region [Override]

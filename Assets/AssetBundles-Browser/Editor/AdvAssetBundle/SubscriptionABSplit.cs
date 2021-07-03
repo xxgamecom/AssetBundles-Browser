@@ -129,9 +129,29 @@ namespace AssetBundleBrowser.AdvAssetBundle
         [MenuItem("Test/DiffTest")]
         public static void DiffTest()
         {
-            var tempPath = "E:/puffer_abdiff-Test/Debug_DynamicDownload/Res/AB";
-            var tempPath_2 = "E:/puffer_abdiff-Test/Debug_DynamicDownload/Res/AB_2";
-            Directory.CreateDirectory(tempPath_2);
+            AssetDatabase.StartAssetEditing();
+            var tempModels = AssetDatabase.FindAssets("t:Model");
+            foreach (var tempGUID in tempModels)
+            {
+                try
+                {
+                    var tempAstPath = AssetDatabase.GUIDToAssetPath(tempGUID);
+                    var tempIm = AssetImporter.GetAtPath(tempAstPath) as ModelImporter;
+                    if (tempIm == null) continue;
+
+                    tempIm.isReadable = true;
+                    Debug.LogError(tempAstPath);
+                }
+                catch (Exception e) { Debug.LogException(e); }
+                break;
+            }
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+
+            //var tempPath = "E:/puffer_abdiff-Test/Debug_DynamicDownload/Res/AB";
+            //var tempPath_2 = "E:/puffer_abdiff-Test/Debug_DynamicDownload/Res/AB_2";
+            //Directory.CreateDirectory(tempPath_2);
             //var tempPatch = "E:/puffer_abdiff-Test/PatchResult/13aeb71d551955fcf58e7d6228165f57";
             //var tempRet = ABDiffPatch.PerformPatch(tempPatch, tempPath, tempPath_2);
             //Debug.LogError(tempRet);
