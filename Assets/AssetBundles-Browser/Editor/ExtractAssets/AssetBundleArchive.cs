@@ -74,7 +74,7 @@ namespace AssetBundleBrowser.ExtractAssets
 
                 if (tempNode.m_Level == tempFieldlevel)
                 {
-                    tempFieldNames.Add(tempNode.m_Name, GetFiledsType(tempNode, varNodes));
+                    tempFieldNames.Add(tempNode.m_Name, tempNode.GetNodeCsharpType(varNodes));
                 }
             }
 
@@ -85,58 +85,6 @@ namespace AssetBundleBrowser.ExtractAssets
 
         }
 
-        Dictionary<string, string> CPPType2CSharp = new Dictionary<string, string>()
-        {
-            { "SInt8","SInt8"},
-            { "UInt8","UInt8"},
-            { "char","char"},
-            { "short","short"},
-            { "SInt16","SInt16"},
-            { "UInt16","UInt16"},
-            { "unsigned short","unsigned short"},
-            { "int","int"},
-            { "SInt32","SInt32"},
-            { "UInt32","UInt32"},
-            { "unsigned int","unsigned int"},
-            { "Type*","Type*"},
-            { "long long","long long"},
-            { "SInt64","SInt64"},
-            { "UInt64","UInt64"},
-            { "unsigned long long","unsigned long long"},
-            { "FileSize","FileSize"},
-            { "float","float"},
-            { "double","double"},
-            { "bool","bool"},
-            { "string","string"},
-        };
-
-        private static string GetFiledsType(TypeTreeNode varBase, List<TypeTreeNode> varNodes)
-        {
-            var tempTypeStr = string.Empty;
-
-            if (varBase.m_Type == "SInt8")
-            {
-                return "sbyte";
-            }
-            if (varBase.m_Type == "UInt16" || varBase.m_Type == "unsigned short")
-            {
-                return "ushort";
-            }
-
-            if (varBase.m_Type == "UInt16" || varBase.m_Type == "unsigned short")
-            {
-                return "ushort";
-            }
-
-            if (varBase.m_Type == "vector")
-            {
-                return string.Empty;
-            }
-
-            return varBase.m_Type;
-        }
-
-        
 
         class GameObject
         {

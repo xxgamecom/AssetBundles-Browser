@@ -6,7 +6,7 @@ namespace AssetBundleBrowser.ExtractAssets
 {
     public interface IExtractable<T>
     {
-        public void Deserialize(EndianBinaryReader varReader);
-        public T Serialize();
+        void Deserialize(EndianBinaryReader varReader);
+        T Serialize();
     }
 }
