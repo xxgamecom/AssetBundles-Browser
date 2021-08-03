@@ -54,18 +54,16 @@ namespace AssetBundleBrowser.ExtractAssets
             #region [API]
             public static Header Parse(EndianBinaryReader varReader)
             {
-                var tempHead = new Header()
-                {
-                    signature = varReader.ReadStringToNull(),
-                    version = varReader.ReadUInt32(),
-                    unityWebBundleVersion = varReader.ReadStringToNull(),
-                    unityWebMinimumRevision = varReader.ReadStringToNull(),
+                var tempHead = new Header();
+                tempHead.signature = varReader.ReadStringToNull();
+                tempHead.version = varReader.ReadUInt32();
+                tempHead.unityWebBundleVersion = varReader.ReadStringToNull();
+                tempHead.unityWebMinimumRevision = varReader.ReadStringToNull();
 
-                    size = varReader.ReadInt64(),
-                    compressedBlocksInfoSize = varReader.ReadUInt32(),
-                    uncompressedBlocksInfoSize = varReader.ReadUInt32(),
-                    flags = varReader.ReadUInt32(),
-                };
+                tempHead.size = varReader.ReadInt64();
+                tempHead.compressedBlocksInfoSize = varReader.ReadUInt32();
+                tempHead.uncompressedBlocksInfoSize = varReader.ReadUInt32();
+                tempHead.flags = varReader.ReadUInt32();
                 return tempHead;
             }
 

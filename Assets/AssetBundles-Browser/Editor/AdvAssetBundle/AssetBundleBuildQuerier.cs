@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace AssetBundleBrowser.AdvAssetBundle
 {
-    public sealed class AssetBundleBuildQuerier : IAssetDataQuerier
+    public class AssetBundleBuildQuerier : IAssetDataQuerier
     {
         #region [Fields]
         private string[] _EmptyStrArray = new string[] { };
@@ -85,7 +85,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
             return _EmptyStrArray;
         }
 
-        public string[] GetDependencies(string[] pathNames, bool recursive)
+        public virtual string[] GetDependencies(string[] pathNames, bool recursive)
             => AssetDatabase.GetDependencies(pathNames, recursive);
 
         public void SetAssetBundleName(string path, string assetBundleName)
