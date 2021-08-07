@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AssetBundleBrowser.ExtractAssets
 {
@@ -42,12 +43,9 @@ namespace AssetBundleBrowser.ExtractAssets
                 if (tempNode.m_Level <= varFieldCls.m_Level) break;
                 if (tempNode.m_Level != varFieldCls.m_Level + 1) continue;
 
-                if (tempNode.m_Name.StartsWith("m_DefValue"))
-                {
-                    int i = 1;
-                }
+                var tempFieldName = CorrectFileName(tempNode.m_Name);
 
-                tempFieldNames.Add(tempNode.m_Name, tempNode.GetNodeCsharpTypeDes(varTreeNodes, out var tempFieldTypes));
+                tempFieldNames.Add(tempFieldName, tempNode.GetNodeCsharpTypeDes(varTreeNodes, out var tempFieldTypes));
                 foreach (var item in tempFieldTypes)
                 {
                     if (!item.IsVauleType())
@@ -102,7 +100,22 @@ namespace AssetBundleBrowser.ExtractAssets
 
             return tempStrBuilder.ToString();
         }
+        #endregion
 
+        #region [Business]
+        public static string CorrectFileName(string varFieldName)
+        {
+            var tempMatchs = Regex.Matches(varFieldName, "\\[(\\w+)\\]");
+            for (int iM = 0; iM < tempMatchs.Count; ++iM)
+            {
+                var tempMatch = tempMatchs[iM];
+                if (!tempMatch.Success) continue;
+
+                varFieldName = varFieldName.Replace(tempMatch.Groups[0].Value, "_" + tempMatch.Groups[1].Value);
+            }
+
+            return varFieldName;
+        }
         #endregion
     }
 }

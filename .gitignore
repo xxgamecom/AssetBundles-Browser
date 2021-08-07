@@ -66,3 +66,5 @@ Documentation/ApiDocs/**
 
 /AssetBundles/
 /AssetBundles_data/
+Assets/AssetBundles-Browser/Editor/ExtractAssets/Dumper/TypetreeGenCode.cs
+Assets/AssetBundles-Browser/Editor/ExtractAssets/Dumper/TypetreeGenCode.cs.meta
