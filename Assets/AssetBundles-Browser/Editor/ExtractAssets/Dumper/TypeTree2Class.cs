@@ -93,7 +93,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 tempEnum.MoveNext();
                 var tempKvp = tempEnum.Current;
 
-                tempStrBuilder.AppendFormat("   public {0} {1};//{2};\n", tempKvp.Value, tempKvp.Key, iF);
+                tempStrBuilder.AppendFormat("   /*{2}*/public {0} {1};\n", tempKvp.Value, tempKvp.Key, iF);
             }
 
             tempStrBuilder.Append("}\n");
