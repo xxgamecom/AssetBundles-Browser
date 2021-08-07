@@ -1,0 +1,37 @@
+ManifestFileVersion: 0
+CRC: 2198449937
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 18a495495354486d0332f9277dcb1d43
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 3b78d118205a11936b0c26bb0ca0b5a4
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 64b734986b86af44caf2cc81cb302ada, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Resources/ConsoleUI.prefab
+Dependencies: []

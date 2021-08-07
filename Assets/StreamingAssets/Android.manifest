@@ -1,0 +1,17 @@
+ManifestFileVersion: 0
+CRC: 1032305431
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: orginprefab_variant
+      Dependencies:
+        Dependency_0: orginprefab
+    Info_1:
+      Name: orginprefab
+      Dependencies: {}
+    Info_2:
+      Name: consoleui
+      Dependencies: {}
+    Info_3:
+      Name: quardandtriangle-prefab
+      Dependencies: {}

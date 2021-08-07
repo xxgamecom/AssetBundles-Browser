@@ -50,7 +50,8 @@ namespace AssetBundleBrowser.ExtractAssets
         /// </summary>
         public int m_ByteSize;
         /// <summary>
-        /// The index of the property (Prefabs use this index in the override bitset)
+        /// The index of the property (Prefabs use this index in the override bitset);
+        /// And Index of TypeTree Offset
         /// </summary>
         public int m_Index;
 

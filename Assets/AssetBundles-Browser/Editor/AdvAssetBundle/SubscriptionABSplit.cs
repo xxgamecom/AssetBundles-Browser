@@ -209,6 +209,8 @@ namespace AssetBundleBrowser.AdvAssetBundle
             var tempObj = Selection.activeObject as GameObject;
             var tempMeshs = tempObj.GetComponentsInChildren<MeshFilter>().Select(mf => mf.sharedMesh);
             var tempChannels = DocumentMeshInfos(tempMeshs);
+            tempMeshs = tempObj.GetComponentsInChildren<SkinnedMeshRenderer>().Select(smr => smr.sharedMesh);
+            tempChannels = DocumentMeshInfos(tempMeshs);
         }
         [MenuItem("Test/AssetBundleMehsinfo")]
         public static void AssetBundleMehsinfo()
@@ -266,6 +268,8 @@ namespace AssetBundleBrowser.AdvAssetBundle
             if (varMesh.normals.Length != 0) tempChannels.Add("normals");
             if (varMesh.tangents.Length != 0) tempChannels.Add("tangents");
             if (varMesh.colors.Length != 0) tempChannels.Add("colors");
+            if (varMesh.bindposes.Length != 0) tempChannels.Add("bindposes");
+            if (varMesh.boneWeights.Length != 0) tempChannels.Add("boneWeights");
 
             var tempList = new List<Vector2>();
             for (int i = 0; i < 8; ++i)

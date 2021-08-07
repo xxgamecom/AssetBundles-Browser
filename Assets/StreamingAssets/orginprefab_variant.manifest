@@ -1,0 +1,26 @@
+ManifestFileVersion: 0
+CRC: 533544268
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 332c3f5e67dff6b000e14b4c3626f374
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 56eff387b6d2db15429f7bd86e696e8e
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Resources/OrginPrefab_Variant/OrginPrefab_Variant.prefab
+Dependencies:
+- F:/GitSpace/ABSituationDetailKit/AssetBundles/Android/orginprefab

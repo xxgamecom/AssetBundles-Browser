@@ -33,6 +33,8 @@ namespace AssetBundleBrowser.ExtractAssets
             Debug.LogError(tempStorage.HeaderInfo);
             Debug.LogError(string.Join(",", tempStorage.BlocksInfo));
             Debug.LogError(string.Join(",", tempStorage.DirectoryInfo));
+
+            var tempCalssSet = new Dictionary<string, TypeTree2Class>();
             foreach (var item in tempStorage.DirectoryInfo)
             {
                 if (!item.IsSerializedFile()) continue;
@@ -41,7 +43,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 var tempSF = new SerializedFile();
                 tempSF.Parse(tempReader);
 
-                var tempSet = new HashSet<string>();
+
                 var tempObjMap = tempSF.ObjectMap;
                 foreach (var tempKvp in tempObjMap)
                 {
@@ -49,51 +51,35 @@ namespace AssetBundleBrowser.ExtractAssets
                     var tempType = tempSF.Types[tempIdx];
                     var tempTreeNodes = tempType.mTypeTree.Nodes;
 
-                    var tempCalssSet = new HashSet<string>();
-                    foreach (var node in tempTreeNodes)
+                    var tempClsInfos = TypeTree2Class.Convert(tempTreeNodes);
+                    foreach (var tempClsInfo in tempClsInfos)
                     {
-                        //if (tempCalssSet.Contains(node.m_Type)) continue;
-                        GetClsFileds(node, tempTreeNodes);
-                        break;
+                        if (tempCalssSet.TryGetValue(tempClsInfo.ClassName, out var tempCache))
+                        {
+                            tempCache.VaildIfConflict(tempClsInfo);
+                        }
+                        else
+                        {
+                            tempCalssSet.Add(tempClsInfo.ClassName, tempClsInfo);
+                        }
                     }
                 }
             }
-        }
 
-        private static void GetClsFileds(TypeTreeNode varBase, List<TypeTreeNode> varNodes)
-        {
-            var tempIdx = varNodes.FindIndex(0, n => n == varBase) + 1;
-            if (tempIdx == 0) return;
-
-            var tempFieldlevel = varBase.m_Level + 1;
-            var tempFieldNames = new Dictionary<string, string>();
-            for (int i = tempIdx; i < varNodes.Count; ++i)
+            var tempStr = string.Empty;
+            tempStr += "using System.Collections.Generic;\n\n";
+            tempStr += "namespace AssetBundleBrowser.ExtractAssets\n{";
+            foreach (var item in tempCalssSet)
             {
-                var tempNode = varNodes[i];
-                if (tempNode.m_Level <= varBase.m_Level) break;
-
-                if (tempNode.m_Level == tempFieldlevel)
-                {
-                    tempFieldNames.Add(tempNode.m_Name, tempNode.GetNodeCsharpType(varNodes));
-                }
+                tempStr += item.Value.Serialized();
             }
+            tempStr += "\n}";
 
-            foreach (var tempKvp in tempFieldNames)
-            {
-                Debug.LogFormat("[{0}-{1}]{2}", varBase.m_Type, tempKvp.Key, tempKvp.Value);
-            }
-
+            File.WriteAllText(Path.Combine(Application.dataPath, "AssetBundles-Browser/Editor/ExtractAssets/Dumper/TypetreeGenCode.cs"),tempStr);
+            
         }
 
-
-        class GameObject
-        {
-            public List<UObject> m_component;
-            public string m_layer;
-            public string m_Name;
-            public ushort m_Tag;
-            public bool m_Isactive;
-        }
+        
 
     }
 }
