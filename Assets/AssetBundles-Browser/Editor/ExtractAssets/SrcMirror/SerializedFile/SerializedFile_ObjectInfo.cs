@@ -8,11 +8,11 @@ namespace AssetBundleBrowser.ExtractAssets
     {
         public class ObjectInfo
         {
+            #region [Fields]
             /// <summary>
             /// LocalIdentifierInFile
             /// </summary>
-            public long m_PathID;
-
+            public long LocalPathID;
             /// <summary>
             /// Need objectInfo.byteStart += header.m_DataOffset;;
             /// </summary>
@@ -22,13 +22,13 @@ namespace AssetBundleBrowser.ExtractAssets
             /// Index of SerializedFile.Types;
             /// </summary>
             public int typeID;
+            #endregion
 
-
-
-            public void Parse(EndianBinaryReader varStream)
+            #region [API]
+            public ObjectInfo Parse(EndianBinaryReader varStream)
             {
                 varStream.AlignStream();
-                m_PathID = varStream.ReadInt64();
+                LocalPathID = varStream.ReadInt64();
 
                 byteStart = varStream.ReadInt64();
 
@@ -36,7 +36,10 @@ namespace AssetBundleBrowser.ExtractAssets
 
                 byteSize = varStream.ReadUInt32();
                 typeID = varStream.ReadInt32();
+
+                return this;
             }
+            #endregion
         }
     }
 }

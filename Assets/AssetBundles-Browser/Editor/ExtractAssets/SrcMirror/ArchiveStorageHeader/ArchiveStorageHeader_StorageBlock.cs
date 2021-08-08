@@ -24,13 +24,13 @@ namespace AssetBundleBrowser.ExtractAssets
         {
             #region [Fields]
             /// <summary>
-            /// Uncompressed size
-            /// </summary>
-            public uint compressedSize;
-            /// <summary>
             /// Compressed block size.
             /// </summary>
             public uint uncompressedSize;
+            /// <summary>
+            /// Uncompressed size
+            /// </summary>
+            public uint compressedSize;
             /// <summary>
             /// StorageBlockFlags
             /// </summary>

@@ -34,15 +34,41 @@ namespace AssetBundleBrowser.ExtractAssets
             Debug.LogError(string.Join(",", tempStorage.BlocksInfo));
             Debug.LogError(string.Join(",", tempStorage.DirectoryInfo));
 
-            var tempCalssSet = new Dictionary<string, TypeTree2Class>();
-            foreach (var item in tempStorage.DirectoryInfo)
+            ObjDecode(tempStorage);
+            //GenTypeTreeCode(tempStorage);
+        }
+
+        private static void ObjDecode(ArchiveStorageHeader varStorage)
+        {
+            foreach (var item in varStorage.DirectoryInfo)
             {
                 if (!item.IsSerializedFile()) continue;
 
                 var tempReader = new EndianBinaryReader(item.Context);
-                var tempSF = new SerializedFile();
-                tempSF.Parse(tempReader);
+                var tempSF = new SerializedFile().Parse(tempReader);
 
+                foreach (var tempKvp in tempSF.ObjectMap)
+                {
+                    var tempObj = tempKvp.Value;
+                    var tempType = tempSF.Types[tempObj.typeID];
+
+                    Debug.LogError(tempType.classID);
+                    Debug.LogError(tempType.m_OldTypeHash);
+
+                }
+
+            }
+        }
+
+        private static void GenTypeTreeCode(ArchiveStorageHeader varStorage)
+        {
+            var tempCalssSet = new Dictionary<string, TypeTree2Class>();
+            foreach (var item in varStorage.DirectoryInfo)
+            {
+                if (!item.IsSerializedFile()) continue;
+
+                var tempReader = new EndianBinaryReader(item.Context);
+                var tempSF = new SerializedFile().Parse(tempReader);
 
                 var tempObjMap = tempSF.ObjectMap;
                 foreach (var tempKvp in tempObjMap)
@@ -75,10 +101,8 @@ namespace AssetBundleBrowser.ExtractAssets
             }
             tempStr += "\n}";
 
-            File.WriteAllText(Path.Combine(Application.dataPath, "AssetBundles-Browser/Editor/ExtractAssets/Dumper/TypetreeGenCode.cs"),tempStr);
-            
+            File.WriteAllText(Path.Combine(Application.dataPath, "AssetBundles-Browser/Editor/ExtractAssets/Dumper/TypetreeGenCode.cs"), tempStr);
         }
-
         
 
     }

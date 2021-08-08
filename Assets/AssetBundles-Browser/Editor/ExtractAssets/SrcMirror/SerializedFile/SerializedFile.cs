@@ -28,11 +28,9 @@ namespace AssetBundleBrowser.ExtractAssets
         public string userInformation;
         #endregion
 
-        public void Parse(EndianBinaryReader varStream)
+        public SerializedFile Parse(EndianBinaryReader varStream)
         {
-            Header = new SerializedFileHeader();
-            Header.Parse(varStream);
-            Debug.LogError(Header);
+            Header = new SerializedFileHeader().Parse(varStream);
 
             varStream.endian = (EndianType)Header.Endianess;
 
@@ -50,8 +48,7 @@ namespace AssetBundleBrowser.ExtractAssets
             Types = new List<SerializedType>(tempTypeCount);
             for (int i = 0; i < tempTypeCount; ++i)
             {
-                var tempType = new SerializedType();
-                tempType.Parse(varStream, EnableTypeTree, Header.Version);
+                var tempType = new SerializedType().Parse(varStream, EnableTypeTree, Header.Version);
                 Types.Add(tempType);
             }
 
@@ -59,18 +56,15 @@ namespace AssetBundleBrowser.ExtractAssets
             ObjectMap = new Dictionary<long, ObjectInfo>(tempObjCount);
             for (int i = 0; i < tempObjCount; ++i)
             {
-                var tempObjInfo = new ObjectInfo();
-                tempObjInfo.Parse(varStream);
-
-                ObjectMap.Add(tempObjInfo.m_PathID, tempObjInfo);
+                var tempObjInfo = new ObjectInfo().Parse(varStream);
+                ObjectMap.Add(tempObjInfo.LocalPathID, tempObjInfo);
             }
 
             var tempScriptCount = varStream.ReadInt32();
             ScriptTypes = new List<LocalSerializedObjectIdentifier>(tempScriptCount);
             for (int i = 0; i < tempScriptCount; ++i)
             {
-                var tempScriptTyps = new LocalSerializedObjectIdentifier();
-                tempScriptTyps.Parse(varStream);
+                var tempScriptTyps = new LocalSerializedObjectIdentifier().Parse(varStream);
                 ScriptTypes.Add(tempScriptTyps);
             }
 
@@ -78,8 +72,7 @@ namespace AssetBundleBrowser.ExtractAssets
             FileIdentifiers = new List<FileIdentifier>(tempExternalsCount);
             for (int i = 0; i < tempExternalsCount; ++i)
             {
-                var tempFileID = new FileIdentifier();
-                tempFileID.Parse(varStream);
+                var tempFileID = new FileIdentifier().Parse(varStream);
                 FileIdentifiers.Add(tempFileID);
             }
 
@@ -87,8 +80,7 @@ namespace AssetBundleBrowser.ExtractAssets
             RefTypes = new List<SerializedType>(tempRefTypesCount);
             for (int i = 0; i < tempRefTypesCount; ++i)
             {
-                var tempType = new SerializedType();
-                tempType.Parse(varStream, EnableTypeTree, Header.Version, true);
+                var tempType = new SerializedType().Parse(varStream, EnableTypeTree, Header.Version, true);
                 Types.Add(tempType);
             }
 
@@ -102,6 +94,8 @@ namespace AssetBundleBrowser.ExtractAssets
             {
                 varStream.AlignStream((int)Alignment.kSectionAlignment);
             }
+
+            return this;
         }
 
         #region [Override]

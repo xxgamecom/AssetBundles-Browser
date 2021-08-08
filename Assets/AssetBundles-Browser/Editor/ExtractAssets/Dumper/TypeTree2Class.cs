@@ -59,6 +59,11 @@ namespace AssetBundleBrowser.ExtractAssets
             return tempTreeClses;
         }
 
+        /// <summary>
+        /// TODO - maybe need makesure the order the same,next version, for that maybe save with different version.;
+        /// </summary>
+        /// <param name="varVailder"></param>
+        /// <returns></returns>
         public bool VaildIfConflict(TypeTree2Class varVailder)
         {
             if (varVailder.ClassName != this.ClassName) return false;

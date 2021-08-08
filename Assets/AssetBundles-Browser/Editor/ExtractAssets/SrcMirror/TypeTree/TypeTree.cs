@@ -11,7 +11,7 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [API]
-        public void Parse(EndianBinaryReader varStream, SerializedFileFormatVersion varFormat)
+        public TypeTree Parse(EndianBinaryReader varStream, SerializedFileFormatVersion varFormat)
         {
             var tempNodeCount = varStream.ReadInt32();
             var tempStringBufferSize = varStream.ReadInt32();
@@ -19,8 +19,7 @@ namespace AssetBundleBrowser.ExtractAssets
             Nodes = new List<TypeTreeNode>(tempNodeCount);
             for (int i = 0; i < tempNodeCount; ++i)
             {
-                var tempNode = new TypeTreeNode();
-                tempNode.Parse(varStream, varFormat);
+                var tempNode = new TypeTreeNode().Parse(varStream, varFormat);
                 Nodes.Add(tempNode);
             }
 
@@ -34,6 +33,7 @@ namespace AssetBundleBrowser.ExtractAssets
                     m_Node.m_Name = ReadCommonString(stringBufferReader, m_Node.m_NameStrOffset);
                 }
             }
+            return this;
         }
         #endregion
 

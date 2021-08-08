@@ -19,14 +19,29 @@ namespace AssetBundleBrowser.ExtractAssets
         /// Old type tree hash.<Hash128>
         /// </summary>
         public byte[] m_OldTypeHash;
+        /// <summary>
+        /// When a SerializedType instance is describing a UnityEngine.Object type:
+        /// This is the collection of all the types that where found to be referenced by fields that are marked as [SerializeRefence].
+        /// (the scope of the list if the whole file and not limited to a single entry in the file)
+        /// </summary>
         public int[] m_TypeDependencies;
+
+        /// <summary>
+        /// Only used for Referenced types
+        /// </summary>
         public string m_KlassName;
+        /// <summary>
+        /// Only used for Referenced types
+        /// </summary>
         public string m_NameSpace;
+        /// <summary>
+        /// Only used for Referenced types
+        /// </summary>
         public string m_AsmName;
         #endregion
 
         #region [API]
-        public void Parse(EndianBinaryReader varStream, bool varEnableTypeTree, SerializedFileFormatVersion varFormat, bool varRefType = false)
+        public SerializedType Parse(EndianBinaryReader varStream, bool varEnableTypeTree, SerializedFileFormatVersion varFormat, bool varRefType = false)
         {
             classID = (PersistentTypeID)varStream.ReadInt32();
             IsStrippedType = varStream.ReadBoolean();
@@ -40,8 +55,7 @@ namespace AssetBundleBrowser.ExtractAssets
 
             if (varEnableTypeTree)
             {
-                mTypeTree = new TypeTree();
-                mTypeTree.Parse(varStream, varFormat);
+                mTypeTree = new TypeTree().Parse(varStream, varFormat);
 
                 if (varFormat >= SerializedFileFormatVersion.kStoresTypeDependencies)
                 {
@@ -57,6 +71,7 @@ namespace AssetBundleBrowser.ExtractAssets
                     }
                 }
             }
+            return this;
         }
         #endregion
 

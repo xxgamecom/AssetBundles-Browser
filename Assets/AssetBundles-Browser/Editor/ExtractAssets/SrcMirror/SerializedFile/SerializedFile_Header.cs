@@ -25,7 +25,7 @@ namespace AssetBundleBrowser.ExtractAssets
             #endregion
 
             #region [API]
-            public void Parse(EndianBinaryReader varStream)
+            public SerializedFileHeader Parse(EndianBinaryReader varStream)
             {
                 MetadataSize = varStream.ReadUInt32();
                 FileSize = varStream.ReadUInt32();
@@ -42,7 +42,9 @@ namespace AssetBundleBrowser.ExtractAssets
                     DataOffset = varStream.ReadInt64();
                     varStream.ReadInt64(); // unknown
                 }
-                
+
+                return this;
+
                 //if (Version < SerializedFileFormatVersion.kLargeFilesSupport)
                 //{
                 //    DataOffset = varStream.ReadUInt32();

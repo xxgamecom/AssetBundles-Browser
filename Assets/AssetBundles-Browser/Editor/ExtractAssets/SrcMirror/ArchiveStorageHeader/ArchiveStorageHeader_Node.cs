@@ -50,7 +50,7 @@ namespace AssetBundleBrowser.ExtractAssets
             #endregion
 
             #region [API]
-            public void Parse(EndianBinaryReader varStream)
+            public Node Parse(EndianBinaryReader varStream)
             {
                 offset = varStream.ReadInt64();
                 size = varStream.ReadInt64();
@@ -62,6 +62,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 //varStream.Position = offset;
                 //varStream.BaseStream.CopyTo(Context, size);
                 //Context.Position = 0;
+                return this;
             }
 
             public bool IsDirectory() => (flags & (int)NodeFlags.kNodeDirectory) != 0;

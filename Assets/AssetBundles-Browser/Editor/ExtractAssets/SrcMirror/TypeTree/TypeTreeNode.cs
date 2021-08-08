@@ -75,7 +75,7 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [API]
-        public void Parse(EndianBinaryReader varStream, SerializedFileFormatVersion varFormat)
+        public TypeTreeNode Parse(EndianBinaryReader varStream, SerializedFileFormatVersion varFormat)
         {
             m_Version = varStream.ReadUInt16();
             m_Level = varStream.ReadByte();
@@ -89,6 +89,7 @@ namespace AssetBundleBrowser.ExtractAssets
             {
                 m_RefTypeHash = varStream.ReadUInt64();
             }
+            return this;
         }
 
         public bool IsArray() => (m_TypeFlags & (int)ETypeFlags.kFlagIsArray) != 0;

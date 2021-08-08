@@ -59,23 +59,25 @@ namespace AssetBundleBrowser.ExtractAssets
 
         #region [Business]
 
-        private long ReadBlocksInfoAndDirectory(EndianBinaryReader reader)
+        private long ReadBlocksInfoAndDirectory(EndianBinaryReader varReader)
         {
             byte[] blocksInfoBytes;
             if (HeaderInfo.version >= 7)
             {
-                reader.AlignStream(16);
+                varReader.AlignStream(16);
             }
             if ((HeaderInfo.flags & (int)ArchiveFlags.kArchiveBlocksInfoAtTheEnd) != 0)
             {
-                var position = reader.Position;
-                reader.Position = reader.BaseStream.Length - HeaderInfo.compressedBlocksInfoSize;
-                blocksInfoBytes = reader.ReadBytes((int)HeaderInfo.compressedBlocksInfoSize);
-                reader.Position = position;
+                var tempPosition = varReader.Position;
+                {
+                    varReader.Position = varReader.BaseStream.Length - HeaderInfo.compressedBlocksInfoSize;
+                    blocksInfoBytes = varReader.ReadBytes((int)HeaderInfo.compressedBlocksInfoSize);
+                }
+                varReader.Position = tempPosition;
             }
             else //0x40 kArchiveBlocksAndDirectoryInfoCombined
             {
-                blocksInfoBytes = reader.ReadBytes((int)HeaderInfo.compressedBlocksInfoSize);
+                blocksInfoBytes = varReader.ReadBytes((int)HeaderInfo.compressedBlocksInfoSize);
             }
             var blocksInfoCompressedStream = new MemoryStream(blocksInfoBytes);
             MemoryStream blocksInfoUncompresseddStream;
@@ -121,13 +123,12 @@ namespace AssetBundleBrowser.ExtractAssets
                 DirectoryInfo = new List<Node>(nodesCount);
                 for (int i = 0; i < nodesCount; i++)
                 {
-                    var tempDirInfo = new Node();
-                    tempDirInfo.Parse(blocksInfoReader);
+                    var tempDirInfo = new Node().Parse(blocksInfoReader);
                     DirectoryInfo.Add(tempDirInfo);
                 }
             }
 
-            return reader.Position;
+            return varReader.Position;
         }
         private void ReadBlocks(EndianBinaryReader varReader, Stream varBlocksStream)
         {

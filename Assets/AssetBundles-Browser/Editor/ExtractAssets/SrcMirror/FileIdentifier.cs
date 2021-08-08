@@ -31,12 +31,13 @@ namespace AssetBundleBrowser.ExtractAssets
         public FileIdentifierType type;
         #endregion
 
-        public void Parse(EndianBinaryReader varStream)
+        public FileIdentifier Parse(EndianBinaryReader varStream)
         {
             var tempEmptyStr = varStream.ReadStringToNull();
             guid = new Guid(varStream.ReadBytes(16));
             type = (FileIdentifierType)varStream.ReadInt32();
             pathName = varStream.ReadStringToNull();
+            return this;
         }
 
     }
