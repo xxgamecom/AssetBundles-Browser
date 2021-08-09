@@ -1002,5 +1002,17 @@ namespace AssetBundleBrowser.AdvAssetBundle
             }
             File.WriteAllText("E:/SkinTest_Res.txt", string.Join("\n", tempRet));
         }
+
+        [MenuItem("AAAAAA/TestTimelineAssetLoad")]
+        public static void TestTimelineAssetLoad()
+        {
+            //Debug.LogError("Load heroshow_veigar_skilla03_idle01_in_04");
+            //var tempA1 = AssetBundle.LoadFromFile("C:/WorkSpace/Unity_proj/AssetBundles/StandaloneWindows64/heroshow_veigar_skilla03_idle01_in_04");
+            Debug.LogError("Load timelineassets");
+            var tempA2 = AssetBundle.LoadFromFile("C:/WorkSpace/Unity_proj/AssetBundles/StandaloneWindows64/timelineassets");
+
+            //if (tempA1 != null) tempA1.Unload(true);
+            if (tempA2 != null) tempA2.Unload(true);
+        }
     }
 }

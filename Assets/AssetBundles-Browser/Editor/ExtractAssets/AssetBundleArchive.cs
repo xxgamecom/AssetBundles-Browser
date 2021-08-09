@@ -34,8 +34,8 @@ namespace AssetBundleBrowser.ExtractAssets
             Debug.LogError(string.Join(",", tempStorage.BlocksInfo));
             Debug.LogError(string.Join(",", tempStorage.DirectoryInfo));
 
-            ObjDecode(tempStorage);
-            //GenTypeTreeCode(tempStorage);
+            //ObjDecode(tempStorage);
+            GenTypeTreeCode(tempStorage);
         }
 
         private static void ObjDecode(ArchiveStorageHeader varStorage)
@@ -56,20 +56,20 @@ namespace AssetBundleBrowser.ExtractAssets
                     {
                         tempReader.Seek(tempObj.byteStart + tempSF.Header.DataOffset, SeekOrigin.Begin);
                         var tempGObj = new GameObject();
-                        var tempSize = tempReader.ReadInt32();
-                        tempGObj.m_Component = new List<ComponentPair>(tempSize);
-                        for (int iC = 0; iC < tempSize; ++iC)
-                        {
-                            var tempPair = new ComponentPair();
-                            tempPair.component = new PPtr<Component>();
-                            tempPair.component.Deserialize(tempReader);
-                            tempGObj.m_Component.Add(tempPair);
-                        }
-                        tempReader.AlignStream();
-                        tempGObj.m_Layer = tempReader.ReadUInt32();
-                        tempGObj.m_Name = tempReader.ReadAlignedString();
-                        tempGObj.m_Tag = tempReader.ReadUInt16();
-                        tempGObj.m_IsActive = tempReader.ReadBoolean();
+                        //var tempSize = tempReader.ReadInt32();
+                        //tempGObj.m_Component = new List<ComponentPair>(tempSize);
+                        //for (int iC = 0; iC < tempSize; ++iC)
+                        //{
+                        //    var tempPair = new ComponentPair();
+                        //    tempPair.component = new PPtr<Component>();
+                        //    tempPair.component.Deserialize(tempReader);
+                        //    tempGObj.m_Component.Add(tempPair);
+                        //}
+                        //tempReader.AlignStream();
+                        //tempGObj.m_Layer = tempReader.ReadUInt32();
+                        //tempGObj.m_Name = tempReader.ReadAlignedString();
+                        //tempGObj.m_Tag = tempReader.ReadUInt16();
+                        //tempGObj.m_IsActive = tempReader.ReadBoolean();
                     }
 
                 }

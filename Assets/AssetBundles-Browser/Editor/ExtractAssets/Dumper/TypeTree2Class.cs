@@ -91,16 +91,42 @@ namespace AssetBundleBrowser.ExtractAssets
             var tempStrBuilder = new StringBuilder();
             tempStrBuilder.AppendFormat("public class {0}\n", ClassName);
             tempStrBuilder.AppendLine("{");
-
-            var tempEnum = _FieldsInfo.GetEnumerator();
-            for (int iF = 0; iF < _FieldsInfo.Count; ++iF)
             {
-                tempEnum.MoveNext();
-                var tempKvp = tempEnum.Current;
+                tempStrBuilder.AppendLine("#region [Fields]");
+                {
+                    var tempEnum = _FieldsInfo.GetEnumerator();
+                    for (int iF = 0; iF < _FieldsInfo.Count; ++iF)
+                    {
+                        tempEnum.MoveNext();
+                        var tempKvp = tempEnum.Current;
 
-                tempStrBuilder.AppendFormat("   /*{2}*/public {0} {1};\n", tempKvp.Value, tempKvp.Key, iF);
+                        tempStrBuilder.AppendFormat("   /*{2}*/public {0} {1};\n", tempKvp.Value, tempKvp.Key, iF);
+                    }
+                }
+                tempStrBuilder.AppendLine("#endregion");
+
+
+                tempStrBuilder.AppendLine("#region [IExtractable]");
+                {
+                    tempStrBuilder.AppendFormat("public static {0} Deserialize(EndianBinaryReader varReader)\n", ClassName);
+                    tempStrBuilder.AppendLine("{");
+                    tempStrBuilder.AppendFormat("var tempItem = new {0}();\n", ClassName);
+                    {
+                        var tempEnum = _FieldsInfo.GetEnumerator();
+                        for (int iF = 0; iF < _FieldsInfo.Count; ++iF)
+                        {
+                            tempEnum.MoveNext();
+                            var tempKvp = tempEnum.Current;
+
+
+                        }
+                    }
+                    tempStrBuilder.AppendLine("return tempItem;\n}");
+
+                    tempStrBuilder.AppendFormat("public {0} Serialize() => this;\n", ClassName);
+                }
+                tempStrBuilder.AppendLine("#endregion");
             }
-
             tempStrBuilder.Append("}\n");
 
             return tempStrBuilder.ToString();

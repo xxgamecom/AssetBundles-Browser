@@ -1,11 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Text.RegularExpressions;
-
 namespace AssetBundleBrowser.ExtractAssets
 {
-    public class PPtr<T> : Object, IExtractable<PPtr<T>>
+    public class PPtr<T> : UnityEngine.Object
     {
         #region [Fields]
         public int m_FileID;
@@ -13,12 +8,14 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [IExtractable]
-        public void Deserialize(EndianBinaryReader varReader)
+        public static PPtr<T> Deserialize(EndianBinaryReader varReader)
         {
-            m_FileID = varReader.ReadInt32();
-            m_PathID = varReader.ReadInt64();
+            var tempItem = new PPtr<T>();
+            tempItem.m_FileID = varReader.ReadInt32();
+            tempItem.m_PathID = varReader.ReadInt64();
+            return tempItem;
         }
-        public PPtr<T> Serialize() { return null; }
+        public PPtr<T> Serialize() => null;
         #endregion
     }
 }
