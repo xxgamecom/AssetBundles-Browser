@@ -55,14 +55,14 @@ namespace AssetBundleBrowser.ExtractAssets
                     if (tempType.classID == PersistentTypeID.GameObject)
                     {
                         tempReader.Seek(tempObj.byteStart + tempSF.Header.DataOffset, SeekOrigin.Begin);
-                        var tempGObj = new GameObject();
+                        //var tempGObj = new GameObject();
                         //var tempSize = tempReader.ReadInt32();
                         //tempGObj.m_Component = new List<ComponentPair>(tempSize);
-                        //for (int iC = 0; iC < tempSize; ++iC)
+                        //for (int i_1 = 0; i_1 < tempSize; ++i_1)
                         //{
                         //    var tempPair = new ComponentPair();
                         //    tempPair.component = new PPtr<Component>();
-                        //    tempPair.component.Deserialize(tempReader);
+                        //    //tempPair.component.Deserialize(tempReader);
                         //    tempGObj.m_Component.Add(tempPair);
                         //}
                         //tempReader.AlignStream();
@@ -120,7 +120,6 @@ namespace AssetBundleBrowser.ExtractAssets
 
             File.WriteAllText(Path.Combine(Application.dataPath, "AssetBundles-Browser/Editor/ExtractAssets/Dumper/TypetreeGenCode.cs"), tempStr);
         }
-        
 
     }
 }

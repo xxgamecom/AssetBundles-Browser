@@ -7,7 +7,9 @@ namespace AssetBundleBrowser.ExtractAssets
 {
     public static class TypeTreeNodeEx
     {
+        #region [delegate]
         public delegate string CppTypeConvertHandler(TypeTreeNode varNode, List<TypeTreeNode> varTreeNodes, out List<TypeTreeNode> varFieldClassName);
+        #endregion
 
         #region [Fields]
         private static Dictionary<string, string> _CppType2CSharp = new Dictionary<string, string>()

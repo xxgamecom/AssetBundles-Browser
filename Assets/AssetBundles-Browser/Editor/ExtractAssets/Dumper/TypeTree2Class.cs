@@ -10,6 +10,24 @@ namespace AssetBundleBrowser.ExtractAssets
     public class TypeTree2Class
     {
         #region [Fields]
+        private const string _ListPrefix = "List<";
+        private const string _DictionaryPrefix = "Dictionary<";
+        private static Dictionary<string, string> _BinaryReaderAPIMap = new Dictionary<string, string>
+        {
+            { "sbyte","ReadSByte"},
+            { "byte","ReadByte"},
+            { "short","ReadInt16"},
+            { "ushort","ReadUInt16"},
+            { "int","ReadInt32"},
+            { "uint","ReadUInt32"},
+            { "long","ReadInt64"},
+            { "ulong","ReadUInt64"},
+            { "float","ReadSingle"},
+            { "double","ReadDouble"},
+            { "bool","ReadBoolean"},
+            { "string","ReadAlignedString"},
+        };
+
         /// <summary>
         /// K = Field Name, V = Field Type;
         /// </summary>
@@ -43,7 +61,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 if (tempNode.m_Level <= varFieldCls.m_Level) break;
                 if (tempNode.m_Level != varFieldCls.m_Level + 1) continue;
 
-                var tempFieldName = CorrectFileName(tempNode.m_Name);
+                var tempFieldName = CorrectFieldName(tempNode.m_Name);
 
                 tempFieldNames.Add(tempFieldName, tempNode.GetNodeCsharpTypeDes(varTreeNodes, out var tempFieldTypes));
                 foreach (var item in tempFieldTypes)
@@ -105,8 +123,9 @@ namespace AssetBundleBrowser.ExtractAssets
                 }
                 tempStrBuilder.AppendLine("#endregion");
 
+                tempStrBuilder.AppendLine();
 
-                tempStrBuilder.AppendLine("#region [IExtractable]");
+                tempStrBuilder.AppendLine("#region [Extractable]");
                 {
                     tempStrBuilder.AppendFormat("public static {0} Deserialize(EndianBinaryReader varReader)\n", ClassName);
                     tempStrBuilder.AppendLine("{");
@@ -118,7 +137,7 @@ namespace AssetBundleBrowser.ExtractAssets
                             tempEnum.MoveNext();
                             var tempKvp = tempEnum.Current;
 
-
+                            tempStrBuilder.AppendLine(SerializedField($"tempItem.{tempKvp.Key}", tempKvp.Value));
                         }
                     }
                     tempStrBuilder.AppendLine("return tempItem;\n}");
@@ -134,7 +153,7 @@ namespace AssetBundleBrowser.ExtractAssets
         #endregion
 
         #region [Business]
-        public static string CorrectFileName(string varFieldName)
+        public static string CorrectFieldName(string varFieldName)
         {
             var tempMatchs = Regex.Matches(varFieldName, "\\[(\\w+)\\]");
             for (int iM = 0; iM < tempMatchs.Count; ++iM)
@@ -146,6 +165,91 @@ namespace AssetBundleBrowser.ExtractAssets
             }
 
             return varFieldName;
+        }
+
+        private static string SerializedField(string varFieldName, string varFieldType)
+        {
+            varFieldType = varFieldType.Trim();
+
+            string tempDecodeStr;
+            if (_BinaryReaderAPIMap.TryGetValue(varFieldType, out tempDecodeStr))
+            {
+                return $"{varFieldName} = varReader.{tempDecodeStr}();";
+            }
+
+            if (SerializedField_List(varFieldName, varFieldType, out tempDecodeStr))
+            {
+                return tempDecodeStr;
+            }
+
+            if (SerializedField_Dic(varFieldName, varFieldType, out tempDecodeStr))
+            {
+                return tempDecodeStr;
+            }
+
+            return $"{varFieldName} = {varFieldType}.Deserialize(varReader);";
+        }
+        private static bool SerializedField_List(string varFieldName, string varFieldType, out string varDecodeStr)
+        {
+            varDecodeStr = string.Empty;
+            if (!varFieldType.StartsWith(_ListPrefix)) return false;
+
+            var tempCodeLines = new List<string>();
+            tempCodeLines.Add("{");
+            tempCodeLines.Add($"{varFieldName} = new {varFieldType}();");
+
+            var tempID = varFieldType.Length;
+            var tempType = varFieldType.Substring(_ListPrefix.Length, varFieldType.Length - _ListPrefix.Length - 1);
+            tempCodeLines.Add($"var tempSize_{tempID} = varReader.ReadInt32();");
+            tempCodeLines.Add($"for (int i_{tempID} = 0; i_{tempID} < tempSize_{tempID}; ++i_{tempID})");
+            tempCodeLines.Add("{");
+            tempCodeLines.Add(SerializedField($"{varFieldName}[i_{tempID}]", tempType));
+            tempCodeLines.Add("}");
+
+            tempCodeLines.Add("}");
+            varDecodeStr = string.Join("\n", tempCodeLines);
+            return true;
+        }
+        private static bool SerializedField_Dic(string varFieldName, string varFieldType, out string varDecodeStr)
+        {
+            varDecodeStr = string.Empty;
+            if (!varFieldType.StartsWith(_DictionaryPrefix)) return false;
+
+            var tempCodeLines = new List<string>();
+            tempCodeLines.Add("{");
+            tempCodeLines.Add($"{varFieldName} = new {varFieldType}();");
+
+            var tempID = varFieldType.Length;
+            var tempTypes = varFieldType.Substring(_DictionaryPrefix.Length, varFieldType.Length - _DictionaryPrefix.Length - 1).Split(',');
+            var tempKeyType = tempTypes[0];
+            var tempValType = tempTypes[1];
+
+            tempCodeLines.Add($"var tempSize_{tempID} = varReader.ReadInt32();");
+            tempCodeLines.Add($"for (int i_{tempID} = 0; i_{tempID} < tempSize_{tempID}; ++i_{tempID})");
+            {
+                tempCodeLines.Add("{");
+                {
+                    tempCodeLines.Add($"{tempKeyType} tempKey_{tempID};");
+                    {
+                        tempCodeLines.Add("{");
+                        tempCodeLines.Add(SerializedField($"tempKey_{tempID}", tempKeyType));
+                        tempCodeLines.Add("}");
+                    }
+
+                    tempCodeLines.Add($"{tempValType} tempVal_{tempID};");
+                    {
+                        tempCodeLines.Add("{");
+                        tempCodeLines.Add(SerializedField($"tempVal_{tempID}", tempValType));
+                        tempCodeLines.Add("}");
+                    }
+                    tempCodeLines.Add($"{varFieldName}.Add(tempKey_{tempID}, tempVal_{tempID});");
+                }
+                tempCodeLines.Add("}");
+            }
+
+            tempCodeLines.Add("}");
+            varDecodeStr = string.Join("\n", tempCodeLines);
+            return true;
         }
         #endregion
     }
