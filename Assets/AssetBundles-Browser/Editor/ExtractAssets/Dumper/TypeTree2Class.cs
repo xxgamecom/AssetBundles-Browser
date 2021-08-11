@@ -33,15 +33,18 @@ namespace AssetBundleBrowser.ExtractAssets
         /// </summary>
         private Dictionary<string, string> _FieldsInfo;
         public string ClassName;
+
+        private HashSet<string> _AlignField;
         #endregion
 
         #region [Construct]
-        public TypeTree2Class(string varClsName, Dictionary<string, string> varFields)
+        public TypeTree2Class(string varClsName, Dictionary<string, string> varFields, HashSet<string> varAlignFields)
         {
             Debug.Assert(!string.IsNullOrEmpty(varClsName));
             Debug.Assert(varFields != null);
             ClassName = varClsName;
             _FieldsInfo = varFields;
+            _AlignField = varAlignFields;
         }
         #endregion
 
@@ -54,6 +57,7 @@ namespace AssetBundleBrowser.ExtractAssets
 
             var tempTreeClses = new List<TypeTree2Class>();
 
+            var tempAlignFields = new HashSet<string>();
             var tempFieldNames = new Dictionary<string, string>();
             for (int iT = varFieldCls.m_Index + 1; iT < varTreeNodes.Count; ++iT)
             {
@@ -62,6 +66,11 @@ namespace AssetBundleBrowser.ExtractAssets
                 if (tempNode.m_Level != varFieldCls.m_Level + 1) continue;
 
                 var tempFieldName = CorrectFieldName(tempNode.m_Name);
+
+                if ((tempNode.m_MetaFlag & (int)TypeTreeNode.TransferMetaFlags.kAlignBytesFlag) != 0)
+                {
+                    tempAlignFields.Add(tempFieldName);
+                }
 
                 tempFieldNames.Add(tempFieldName, tempNode.GetNodeCsharpTypeDes(varTreeNodes, out var tempFieldTypes));
                 foreach (var item in tempFieldTypes)
@@ -73,7 +82,7 @@ namespace AssetBundleBrowser.ExtractAssets
                 }
             }
 
-            tempTreeClses.Add(new TypeTree2Class(tempClsName, tempFieldNames));
+            tempTreeClses.Add(new TypeTree2Class(tempClsName, tempFieldNames, tempAlignFields));
             return tempTreeClses;
         }
 
@@ -137,7 +146,7 @@ namespace AssetBundleBrowser.ExtractAssets
                             tempEnum.MoveNext();
                             var tempKvp = tempEnum.Current;
 
-                            tempStrBuilder.AppendLine(SerializedField($"tempItem.{tempKvp.Key}", tempKvp.Value));
+                            tempStrBuilder.AppendLine(SerializedField($"tempItem.{tempKvp.Key}", tempKvp.Key, tempKvp.Value));
                         }
                     }
                     tempStrBuilder.AppendLine("return tempItem;\n}");
@@ -167,29 +176,31 @@ namespace AssetBundleBrowser.ExtractAssets
             return varFieldName;
         }
 
-        private static string SerializedField(string varFieldName, string varFieldType)
+        private string SerializedField(string varFieldName, string varMetaFieldName, string varFieldType)
         {
             varFieldType = varFieldType.Trim();
 
             string tempDecodeStr;
             if (_BinaryReaderAPIMap.TryGetValue(varFieldType, out tempDecodeStr))
             {
-                return $"{varFieldName} = varReader.{tempDecodeStr}();";
+                tempDecodeStr = $"{varFieldName} = varReader.{tempDecodeStr}();";
+                return WhetherAligned(varMetaFieldName, ref tempDecodeStr);
             }
 
             if (SerializedField_List(varFieldName, varFieldType, out tempDecodeStr))
             {
-                return tempDecodeStr;
+                return WhetherAligned(varMetaFieldName, ref tempDecodeStr);
             }
 
             if (SerializedField_Dic(varFieldName, varFieldType, out tempDecodeStr))
             {
-                return tempDecodeStr;
+                return WhetherAligned(varMetaFieldName, ref tempDecodeStr);
             }
 
-            return $"{varFieldName} = {varFieldType}.Deserialize(varReader);";
+            tempDecodeStr = $"{varFieldName} = {varFieldType}.Deserialize(varReader);";
+            return WhetherAligned(varMetaFieldName, ref tempDecodeStr);
         }
-        private static bool SerializedField_List(string varFieldName, string varFieldType, out string varDecodeStr)
+        private bool SerializedField_List(string varFieldName, string varFieldType, out string varDecodeStr)
         {
             varDecodeStr = string.Empty;
             if (!varFieldType.StartsWith(_ListPrefix)) return false;
@@ -203,14 +214,15 @@ namespace AssetBundleBrowser.ExtractAssets
             tempCodeLines.Add($"var tempSize_{tempID} = varReader.ReadInt32();");
             tempCodeLines.Add($"for (int i_{tempID} = 0; i_{tempID} < tempSize_{tempID}; ++i_{tempID})");
             tempCodeLines.Add("{");
-            tempCodeLines.Add(SerializedField($"{varFieldName}[i_{tempID}]", tempType));
+            tempCodeLines.Add($"{varFieldName}.Add(default);");
+            tempCodeLines.Add(SerializedField($"{varFieldName}[i_{tempID}]", null, tempType));
             tempCodeLines.Add("}");
 
             tempCodeLines.Add("}");
             varDecodeStr = string.Join("\n", tempCodeLines);
             return true;
         }
-        private static bool SerializedField_Dic(string varFieldName, string varFieldType, out string varDecodeStr)
+        private bool SerializedField_Dic(string varFieldName, string varFieldType, out string varDecodeStr)
         {
             varDecodeStr = string.Empty;
             if (!varFieldType.StartsWith(_DictionaryPrefix)) return false;
@@ -232,14 +244,14 @@ namespace AssetBundleBrowser.ExtractAssets
                     tempCodeLines.Add($"{tempKeyType} tempKey_{tempID};");
                     {
                         tempCodeLines.Add("{");
-                        tempCodeLines.Add(SerializedField($"tempKey_{tempID}", tempKeyType));
+                        tempCodeLines.Add(SerializedField($"tempKey_{tempID}", null, tempKeyType));
                         tempCodeLines.Add("}");
                     }
 
                     tempCodeLines.Add($"{tempValType} tempVal_{tempID};");
                     {
                         tempCodeLines.Add("{");
-                        tempCodeLines.Add(SerializedField($"tempVal_{tempID}", tempValType));
+                        tempCodeLines.Add(SerializedField($"tempVal_{tempID}", null, tempValType));
                         tempCodeLines.Add("}");
                     }
                     tempCodeLines.Add($"{varFieldName}.Add(tempKey_{tempID}, tempVal_{tempID});");
@@ -250,6 +262,14 @@ namespace AssetBundleBrowser.ExtractAssets
             tempCodeLines.Add("}");
             varDecodeStr = string.Join("\n", tempCodeLines);
             return true;
+        }
+        private string WhetherAligned(string varMetaFieldName, ref string varDecodeStr)
+        {
+            if (_AlignField.Contains(varMetaFieldName))
+            {
+                varDecodeStr += "\nvarReader.AlignStream();";
+            }
+            return varDecodeStr;
         }
         #endregion
     }

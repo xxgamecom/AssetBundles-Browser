@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEditor;
 using System.Collections.Generic;
+using System.Reflection;
 
 using UObject = UnityEngine.Object;
 
@@ -34,8 +35,8 @@ namespace AssetBundleBrowser.ExtractAssets
             Debug.LogError(string.Join(",", tempStorage.BlocksInfo));
             Debug.LogError(string.Join(",", tempStorage.DirectoryInfo));
 
-            //ObjDecode(tempStorage);
-            GenTypeTreeCode(tempStorage);
+            ObjDecode(tempStorage);
+            //GenTypeTreeCode(tempStorage);
         }
 
         private static void ObjDecode(ArchiveStorageHeader varStorage)
@@ -52,25 +53,13 @@ namespace AssetBundleBrowser.ExtractAssets
                     var tempObj = tempKvp.Value;
                     var tempType = tempSF.Types[tempObj.typeID];
 
-                    if (tempType.classID == PersistentTypeID.GameObject)
-                    {
-                        tempReader.Seek(tempObj.byteStart + tempSF.Header.DataOffset, SeekOrigin.Begin);
-                        //var tempGObj = new GameObject();
-                        //var tempSize = tempReader.ReadInt32();
-                        //tempGObj.m_Component = new List<ComponentPair>(tempSize);
-                        //for (int i_1 = 0; i_1 < tempSize; ++i_1)
-                        //{
-                        //    var tempPair = new ComponentPair();
-                        //    tempPair.component = new PPtr<Component>();
-                        //    //tempPair.component.Deserialize(tempReader);
-                        //    tempGObj.m_Component.Add(tempPair);
-                        //}
-                        //tempReader.AlignStream();
-                        //tempGObj.m_Layer = tempReader.ReadUInt32();
-                        //tempGObj.m_Name = tempReader.ReadAlignedString();
-                        //tempGObj.m_Tag = tempReader.ReadUInt16();
-                        //tempGObj.m_IsActive = tempReader.ReadBoolean();
-                    }
+                    var tempTreeNodes = tempType.mTypeTree.Nodes;
+
+                    tempReader.Seek(tempObj.byteStart + tempSF.Header.DataOffset, SeekOrigin.Begin);
+                    var tempDecodeType = tempType.classID.ToString();
+                    var tempDeserializeAction = Type.GetType($"AssetBundleBrowser.ExtractAssets.{tempDecodeType}").GetMethod("Deserialize", BindingFlags.Public | BindingFlags.Static);
+                    var tempDecodeObj = tempDeserializeAction.Invoke(null, new object[] { tempReader });
+                    Debug.LogError(tempDecodeObj);
 
                 }
 
