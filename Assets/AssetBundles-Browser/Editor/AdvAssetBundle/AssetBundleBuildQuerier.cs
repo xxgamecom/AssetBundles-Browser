@@ -9,9 +9,13 @@ namespace AssetBundleBrowser.AdvAssetBundle
     {
         #region [Fields]
         private string[] _EmptyStrArray = new string[] { };
-        //Key = ABName;
+        /// <summary>
+        /// Key = ABName;
+        /// </summary>
         private Dictionary<string, AssetBundleBuild> _BuildABMap;
-        //key = assetPath,Val = ABName;
+        /// <summary>
+        /// key = assetPath,Val = ABName;
+        /// </summary>
         private Dictionary<string, string> _AssetABName;
         #endregion
 
@@ -165,15 +169,7 @@ namespace AssetBundleBrowser.AdvAssetBundle
 
             foreach (var tempKvp in tempABAsts)
             {
-                tempABInfos.Add(new AssetBundleBuild() { assetBundleName = tempKvp.Key, assetNames = tempKvp.Value.OrderBy(a => a).ToArray() });
-            }
-
-            //make sure assetbundle name is lower str;
-            for (int iB = 0; iB < tempABInfos.Count; ++iB)
-            {
-                var tempBuild = tempABInfos[iB];
-                tempBuild.assetBundleName = tempBuild.assetBundleName.ToLower();
-                tempABInfos[iB] = tempBuild;
+                tempABInfos.Add(new AssetBundleBuild() { assetBundleName = tempKvp.Key.ToLower(), assetNames = tempKvp.Value.OrderBy(a => a).ToArray() });
             }
 
             return tempABInfos.OrderBy(b => b.assetBundleName).ToArray();
