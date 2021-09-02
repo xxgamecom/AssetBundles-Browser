@@ -73,7 +73,7 @@ namespace AssetBundleBrowser
             }
             #endregion
         }
-        private class AssetBundleBuild
+        public class AssetBundleBuild
         {
             #region [Fields]
             //
