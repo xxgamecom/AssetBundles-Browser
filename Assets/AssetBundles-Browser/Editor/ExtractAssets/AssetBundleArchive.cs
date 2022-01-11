@@ -35,8 +35,8 @@ namespace AssetBundleBrowser.ExtractAssets
             Debug.LogError(string.Join(",", tempStorage.BlocksInfo));
             Debug.LogError(string.Join(",", tempStorage.DirectoryInfo));
 
-            ObjDecode(tempStorage);
-            //GenTypeTreeCode(tempStorage);
+            //ObjDecode(tempStorage);
+            GenTypeTreeCode(tempStorage);
         }
 
         private static void ObjDecode(ArchiveStorageHeader varStorage)
