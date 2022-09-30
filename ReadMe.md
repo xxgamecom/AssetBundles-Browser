@@ -16,9 +16,7 @@ Editor `manifest.json`
 
 ## Used by
 
-| [英雄联盟手游](https://lolm.qq.com/main.html)                | [金铲铲之战](https://jcc.qq.com/#/index)                     |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![](https://fastly.jsdelivr.net/gh/Rootjhon/img_note@empty/1661328806781app_icon.png) | ![](https://fastly.jsdelivr.net/gh/Rootjhon/img_note@empty/1661329803787ic_launcher.png) |
-| [**跑跑卡丁车手游**](https://wepop.qq.com/main.shtml)        |                                                              |
-| ![](https://fastly.jsdelivr.net/gh/Rootjhon/img_note@empty/1661329541784app_icon.png) |                                                              |
+|        [英雄联盟手游](https://lolm.qq.com/main.html)         |    [**跑跑卡丁车手游**](https://wepop.qq.com/main.shtml)     |           [金铲铲之战](https://jcc.qq.com/#/index)           |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| <img src="https://fastly.jsdelivr.net/gh/Rootjhon/img_note@empty/1661328806781app_icon.png" style="zoom: 50%;" /> | <img src="https://fastly.jsdelivr.net/gh/Rootjhon/img_note@empty/1661329541784app_icon.png" style="zoom:50%;" /> | <img src="https://fastly.jsdelivr.net/gh/Rootjhon/img_note@empty/1661329803787ic_launcher.png" style="zoom: 67%;" /> |
 
