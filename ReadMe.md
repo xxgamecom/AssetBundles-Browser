@@ -1,4 +1,4 @@
-## HOW to Use It
+## HOW to Use It. <img align="right" src="https://profile-counter.glitch.me/Rootjhon/count.svg" alt="Rootjhon" />
 
 Editor `manifest.json`
 
