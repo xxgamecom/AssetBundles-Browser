@@ -201,8 +201,8 @@ namespace AssetBundleBrowser.AdvAssetBundle
                     tempHashSetHelper.UnionWith(varABDepABs[tempABName]);
                     tempHashSetHelper.Add(tempABName);
                 }
+                //TODO - 这里应该多一层考虑 TypeTree的重复性的内存优化
                 var tempAllABDeps = tempHashSetHelper.OrderBy(a => a).ToList();
-
                 for (int iAD = tempAllABDeps.Count - 1; iAD >= 0; --iAD)
                 {
                     var tempABName = tempAllABDeps[iAD];
